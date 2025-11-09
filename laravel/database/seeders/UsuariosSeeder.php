@@ -2,8 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+
 
 class UsuariosSeeder extends Seeder
 {
@@ -12,6 +13,16 @@ class UsuariosSeeder extends Seeder
      */
     public function run(): void
     {
-        //
+        DB::table('usuarios')->truncate();
+
+        DB::table('usuarios')->insert([
+            [
+                'nombre_usuario'=>'admin',
+                'nombre'=>'Administrador',
+                'apellido'=>'General',
+                'email'=>'admin@pge.qroo',
+                'contrasena'=> bcrypt('admin123'),
+            ]
+        ]);
     }
 }
