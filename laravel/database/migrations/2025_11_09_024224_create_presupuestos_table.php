@@ -13,15 +13,19 @@ return new class extends Migration
     {
         Schema::create('presupuestos', function (Blueprint $table) {
             $table->id('id_presupuesto');
-            $table->foreingId('dependencia_id')
-                ->constrained('dependencias')
+
+            $table->unsignedBigInteger('id_dependencia');
+            $table->foreign('id_dependencia')
+                ->references('id_dependencia')
+                ->on('dependencias')
                 ->cascadeOnDelete();
+
 
             $table->integer('anio');
             $table->integer('trimestre');
             $table->decimal('monto_asignado', 18, 2);
 
-            $table->unique(['dependencia_id', 'anio', 'trimestre']);
+            $table->unique(['id_dependencia', 'anio', 'trimestre']);
         });
     }
 

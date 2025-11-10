@@ -12,9 +12,22 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('rol_permisos', function (Blueprint $table) {
-            $table->foreignId('rol_id')->constrained('roles')->cascadeOnDelete();
-            $table->foreignId('permiso_id')->constrained('permisos')->cascadeOnDelete();
-            $table->primary(['rol_id', 'permiso_id']);
+            // 🔹 Relación con 'roles'
+            $table->unsignedBigInteger('id_rol');
+            $table->foreign('id_rol')
+                ->references('id_rol')
+                ->on('roles')
+                ->cascadeOnDelete();
+
+            // 🔹 Relación con 'permisos'
+            $table->unsignedBigInteger('id_permiso');
+            $table->foreign('id_permiso')
+                ->references('id_permiso')
+                ->on('permisos')
+                ->cascadeOnDelete();
+
+            // 🔹 Clave primaria compuesta
+            $table->primary(['id_rol', 'id_permiso']);
         });
     }
 

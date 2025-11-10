@@ -1,4 +1,32 @@
-fastapi
-uvicorn
-psycopg2-binary
-sqlalchemy
+# Framework principal
+fastapi==0.115.0
+uvicorn[standard]==0.30.0
+
+# Base de datos
+psycopg[binary]>=3.1.9
+psycopg_pool>=3.2.1
+sqlalchemy>=2.0.30
+python-dotenv==1.0.1
+
+
+# Análisis de datos
+pandas>=2.2.0
+numpy>=1.26.4
+scipy>=1.12.0
+
+# Machine Learning / Predicción
+scikit-learn>=1.5.0
+prophet>=1.1.5
+
+# Visualización (opcional, si vas a generar reportes o dashboards automáticos)
+matplotlib>=3.9.0
+seaborn>=0.13.0
+plotly>=5.22.0
+
+# Utilidades
+python-dateutil>=2.9.0
+pydantic>=2.7.0
+pydantic-settings>=2.2.1
+
+# CORS y seguridad
+aiofiles>=23.2.1
