@@ -14,10 +14,12 @@ return new class extends Migration
         Schema::create('presupuestos', function (Blueprint $table) {
             $table->id('id_presupuesto');
 
+
             $table->unsignedBigInteger('id_dependencia');
             $table->foreign('id_dependencia')
                 ->references('id_dependencia')
                 ->on('dependencias')
+
                 ->cascadeOnDelete();
 
 

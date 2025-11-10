@@ -12,12 +12,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('edificio', function (Blueprint $table) {
+
             $table->id('id_edificio'); // 🔹 Clave primaria
 
             $table->unsignedBigInteger('id_dependencia');
             $table->foreign('id_dependencia')
                 ->references('id_dependencia')
                 ->on('dependencias')
+
                 ->cascadeOnDelete();
 
             $table->string('nombre_edificio', 255);
