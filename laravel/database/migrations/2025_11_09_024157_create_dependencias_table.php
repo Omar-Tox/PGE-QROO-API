@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id('id_dependencia');
             $table->string('nombre_dependencia', 255)->unique();
             $table->foreignId('sector_id')
-                ->nulleable()
+                ->nullable()
                 ->constrained('sector')
                 ->nullOnDelete(); // Permite que si sector se elimina, este valor sea NULL
             
