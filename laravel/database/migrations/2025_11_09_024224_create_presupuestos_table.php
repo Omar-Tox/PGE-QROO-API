@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('presupuestos', function (Blueprint $table) {
             $table->id('id_presupuesto');
-            $table->foreingId('dependencia_id')
+            $table->foreignId('dependencia_id')
                 ->constrained('dependencias')
                 ->cascadeOnDelete();
 

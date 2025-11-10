@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('dependencias', function (Blueprint $table) {
             $table->id('id_dependencia');
             $table->string('nombre_dependencia', 255)->unique();
-            $table->foreingId('sector_id')
+            $table->foreignId('sector_id')
                 ->nulleable()
                 ->constrained('sector')
                 ->nullOnDelete(); // Permite que si sector se elimina, este valor sea NULL

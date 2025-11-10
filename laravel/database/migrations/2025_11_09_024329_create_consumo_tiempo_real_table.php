@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('consumo_tiempo_real', function (Blueprint $table) {
             $table->id('id_registro');
-            $table->foreingId('edificio_id')->constrained('edificios')->cascadeOnDelete();
+            $table->foreignId('edificio_id')->constrained('edificios')->cascadeOnDelete();
             $table->string('id_sensor', 100);
             $table->timestamp('timestamp_registro')->useCurrent();
             $table->decimal('consumo_energetico', 18, 4);

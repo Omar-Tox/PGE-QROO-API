@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('usuario_dependencia_roles', function (Blueprint $table) {
-            $table->foreingId('usuario_id')->constrained('usuarios')->cascadeOnDelete();
-            $table->foreingId('dependencia_id')->constrained('dependencias')->cascadeOnDelete();
-            $table->foreingId('rol_id')->constrained('roles')->cascadeOnDelete();
+            $table->foreignId('usuario_id')->constrained('usuarios')->cascadeOnDelete();
+            $table->foreignId('dependencia_id')->constrained('dependencias')->cascadeOnDelete();
+            $table->foreignId('rol_id')->constrained('roles')->cascadeOnDelete();
             
             $table->primary(['usuario_id', 'dependencia_id', 'rol_id']);
         });
