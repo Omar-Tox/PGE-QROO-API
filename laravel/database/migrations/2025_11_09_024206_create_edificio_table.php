@@ -13,8 +13,9 @@ return new class extends Migration
     {
         Schema::create('edificio', function (Blueprint $table) {
             $table->id('id_edificio');
-            $table->foreignId('dependencia_id')
-                ->constrained('dependencias')
+            $table->foreign('dependencia_id')
+                ->references('id_dependencia')
+                ->on('dependendias')
                 ->cascadeOnDelete();
 
             $table->string('nombre_edificio', 255);
