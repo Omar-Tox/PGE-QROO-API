@@ -3,14 +3,20 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+// use Illuminate\Database\Eloquent\Factories\HasFactory;
+
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
+
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasApiTokens, Notifiable;
+
+    protected $table = 'usuarios';
+    public $timestamps = false;
 
     /**
      * The attributes that are mass assignable.
@@ -18,9 +24,12 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'name',
+        'nombre_usuario',
+        'nombre',
+        'apellido',
         'email',
-        'password',
+        'contresena',
+        'activo',
     ];
 
     /**
@@ -29,20 +38,24 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $hidden = [
-        'password',
-        'remember_token',
+        'contresena'
     ];
 
+    public function getAuthPassword() {
+        return $this->contrasena;
+    }
+
     /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
+     * Relacion pivote compleja
+     * Un usuario puede tener muchos roles en muchas dependencias
      */
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
+    public function roles() {
+        return $this->belongsToMany(Rol::class, 'usuario_dependencia_roles', 'usuario_id', 'rol_id')
+                    ->withPivot('dependencia_id');
+    }
+
+    public function dependencias () {
+        return $this->belongsToMany(Dependencia::class, 'usuario_dependencia_roles', 'usuario_id', 'dependencia_id')
+                    ->withPivot('rol_id')->distinct();
     }
 }
