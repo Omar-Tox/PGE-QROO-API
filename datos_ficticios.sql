@@ -45,14 +45,14 @@ INSERT INTO edificio (id_dependencia, nombre_edificio, direccion, latitud, longi
 DO $$
 DECLARE
     dep_id INT;
-    anio INT;
+    año INT;
     trim INT;
 BEGIN
     FOR dep_id IN 1..10 LOOP
-        FOR anio IN 2015..2024 LOOP
+        FOR año IN 2015..2024 LOOP
             FOR trim IN 1..4 LOOP
-                INSERT INTO presupuestos (id_dependencia, anio, trimestre, monto_asignado)
-                VALUES (dep_id, anio, trim, ROUND((RANDOM() * 7000000 + 1500000)::NUMERIC, 2));
+                INSERT INTO presupuestos (id_dependencia, año, trimestre, monto_asignado)
+                VALUES (dep_id, año, trim, ROUND((RANDOM() * 7000000 + 1500000)::NUMERIC, 2));
             END LOOP;
         END LOOP;
     END LOOP;
@@ -64,16 +64,16 @@ END $$;
 DO $$
 DECLARE
     edif_id INT;
-    anio INT;
+    año INT;
     mes INT;
     consumo NUMERIC;
 BEGIN
     FOR edif_id IN 1..10 LOOP
-        FOR anio IN 2015..2025 LOOP
+        FOR año IN 2015..2025 LOOP
             FOR mes IN 1..12 LOOP
                 consumo := ROUND((RANDOM() * 35000 + 3000)::NUMERIC, 2);
-                INSERT INTO consumo_historico (id_edificio, anio, mes, consumo_kwh, costo_total, fuente_dato)
-                VALUES (edif_id, anio, mes, consumo, ROUND(consumo * (RANDOM() * 1.8 + 0.8)::NUMERIC, 2), 'CFE');
+                INSERT INTO consumo_historico (id_edificio, año, mes, consumo_kwh, costo_total, fuente_dato)
+                VALUES (edif_id, año, mes, consumo, ROUND(consumo * (RANDOM() * 1.8 + 0.8)::NUMERIC, 2), 'CFE');
             END LOOP;
         END LOOP;
     END LOOP;

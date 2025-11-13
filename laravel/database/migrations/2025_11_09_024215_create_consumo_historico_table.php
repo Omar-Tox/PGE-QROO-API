@@ -12,21 +12,17 @@ return new class extends Migration {
     {
         Schema::create('consumo_historico', function (Blueprint $table) {
             $table->id('id_consumo_historico');
-
-            $table->unsignedBigInteger('id_edificio');
-            $table->foreign('id_edificio')
-                ->references('id_edificio')
-                ->on('edificio')
+            $table->foreignId('edificio_id')
+                ->constrained('edificio', 'id_edificio')
                 ->cascadeOnDelete();
-
-            $table->integer('anio');
+            $table->integer('año');
             $table->integer('mes');
             $table->decimal('consumo_kwh', 18, 2);
             $table->decimal('costo_total', 18, 2);
             $table->string('fuente_dato', 100)->nullable();
             $table->timestamp('fecha_registro')->useCurrent();
 
-            $table->unique(['id_edificio', 'anio', 'mes']);
+            $table->unique(['id_edificio', 'año', 'mes']);
         });
     }
     

@@ -14,16 +14,9 @@ return new class extends Migration
         Schema::create('dependencias', function (Blueprint $table) {
             $table->id('id_dependencia');
             $table->string('nombre_dependencia', 255)->unique();
-
-            
-            $table->unsignedBigInteger('id_sector')->nullable();
-            $table->foreign('id_sector')
-                ->references('id_sector')
-                ->on('sector')
-                ->nullOnDelete();
-
-   
-            
+            $table->foreignId('sector_id')
+                ->constrained('sector', 'id_sector')
+                ->cascadeOnDelete();
             $table->timestamp('fecha_alta')->useCurrent();
         });
     }
