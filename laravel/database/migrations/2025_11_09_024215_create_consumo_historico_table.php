@@ -11,9 +11,12 @@ return new class extends Migration {
     public function up(): void 
     {
         Schema::create('consumo_historico', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('edificio_id')
-                ->constrained('edificio')
+            $table->id('id_consumo_historico');
+
+            $table->unsignedBigInteger('id_edificio');
+            $table->foreign('id_edificio')
+                ->references('id_edificio')
+                ->on('edificio')
                 ->cascadeOnDelete();
 
             $table->integer('anio');
@@ -23,7 +26,7 @@ return new class extends Migration {
             $table->string('fuente_dato', 100)->nullable();
             $table->timestamp('fecha_registro')->useCurrent();
 
-            $table->unique(['edificio_id', 'anio', 'mes']);
+            $table->unique(['id_edificio', 'anio', 'mes']);
         });
     }
     

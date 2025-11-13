@@ -12,10 +12,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('edificio', function (Blueprint $table) {
-            $table->id('id_edificio');
-            $table->foreign('dependencia_id')
+
+            $table->id('id_edificio'); // 🔹 Clave primaria
+
+            $table->unsignedBigInteger('id_dependencia');
+            $table->foreign('id_dependencia')
                 ->references('id_dependencia')
-                ->on('dependendias')
+                ->on('dependencias')
+
                 ->cascadeOnDelete();
 
             $table->string('nombre_edificio', 255);
@@ -23,7 +27,7 @@ return new class extends Migration
             $table->decimal('latitud', 9, 6)->nullable();
             $table->decimal('longitud', 9, 6)->nullable();
             $table->string('caracteristicas', 500)->nullable();
-
+            $table->timestamp('fecha_alta')->useCurrent(); // 🔹 Por consistencia con tus demás tablas
         });
     }
 
