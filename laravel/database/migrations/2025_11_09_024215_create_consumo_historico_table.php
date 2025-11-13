@@ -22,7 +22,7 @@ return new class extends Migration {
             $table->string('fuente_dato', 100)->nullable();
             $table->timestamp('fecha_registro')->useCurrent();
 
-            $table->unique(['id_edificio', 'año', 'mes']);
+            $table->unique(['edificio_id', 'año', 'mes']);
         });
     }
     

@@ -20,7 +20,7 @@ return new class extends Migration
             $table->integer('trimestre');
             $table->decimal('monto_asignado', 18, 2);
 
-            $table->unique(['id_dependencia', 'año', 'trimestre']);
+            $table->unique(['dependencia_id', 'año', 'trimestre']);
         });
     }
 
