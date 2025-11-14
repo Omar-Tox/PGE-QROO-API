@@ -29,7 +29,7 @@ class DependenciasSeeder extends Seeder
             ],
             [
                 'nombre_dependencia'=>'Secretaría de Finanzas y Planeación',
-                'sector_id'=> DB::table('sector')->where('nombre_sector', ' Administración Pública')->value('id_sector')
+                'sector_id'=> DB::table('sector')->where('nombre_sector', 'Administración Pública')->value('id_sector')
             ],
         ]);
     }

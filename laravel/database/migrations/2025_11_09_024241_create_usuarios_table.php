@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('nombre', 50);
             $table->string('apellido', 50);
             $table->string('email', 255)->unique();
-            $table->string('contresena', 128);
+            $table->string('contrasena', 128);
             $table->boolean('activo')->default(true);
              $table->timestamp('fecha_registro')->useCurrent();
              $table->timestamp('ultimo_login')->nullable();
