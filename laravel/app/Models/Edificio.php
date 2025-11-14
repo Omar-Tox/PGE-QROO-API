@@ -27,10 +27,10 @@ class Edificio extends Model
     }
 
     public function consumoHistorico () {
-        return $this->hasMany(ConsumoHistorico::class, 'id_edificio', 'edificio_id');
+        return $this->hasMany(ConsumoHistorico::class, 'edificio_id', 'id_edificio');
     }
 
     public function consumoTiempoReal () {
-        return $this-hasMany(ConsumoTiempoReal::class, 'id_edificio', 'edificio_id');
+        return $this-hasMany(ConsumoTiempoReal::class, 'edificio_id', 'id_edificio');
     }
 }

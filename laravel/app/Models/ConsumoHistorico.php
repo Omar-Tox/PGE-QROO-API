@@ -12,7 +12,7 @@ class ConsumoHistorico extends Model
 
     protected $table = 'consumo_historico';
     protected $primaryKey = 'id_consumo_historico';
-    public $timestamp = 'fecha_registro';
+    public $timestamps = 'fecha_registro';
 
     protected $fillable = [
         'edificio_id',

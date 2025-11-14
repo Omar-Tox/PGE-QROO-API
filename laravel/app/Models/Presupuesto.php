@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class Presupuestos extends Model
+class Presupuesto extends Model
 {
     //
     use HasFactory;
@@ -21,6 +21,6 @@ class Presupuestos extends Model
     ];
 
     public function dependencia () {
-        return $this->belognsTo(Dependencia::class, 'dependencia_id', 'id_dependencia');
+        return $this->belongsTo(Dependencia::class, 'dependencia_id', 'id_dependencia');
     }
 }
