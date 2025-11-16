@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id('id_dependencia');
             $table->string('nombre_dependencia', 255)->unique();
             $table->foreignId('sector_id')
+                ->nullable()
                 ->constrained('sector', 'id_sector')
                 ->cascadeOnDelete();
             $table->timestamp('fecha_alta')->useCurrent();

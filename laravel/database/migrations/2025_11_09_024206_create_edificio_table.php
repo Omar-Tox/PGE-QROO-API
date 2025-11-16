@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignId('dependencia_id')
                 ->constrained('dependencias', 'id_dependencia')
                 ->cascadeOnDelete();
+                
 
             $table->string('nombre_edificio', 255);
             $table->string('direccion', 500)->nullable();
