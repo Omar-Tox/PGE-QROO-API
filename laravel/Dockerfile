@@ -18,7 +18,8 @@ WORKDIR /var/www/html
 COPY . .
 
 # Install Laravel dependencies
-RUN composer install --no-dev --optimize-autoloader
+# RUN composer install --no-dev --optimize-autoloader
+RUN composer install --no-dev --no-scripts --optimize-autoloader
 
 # === ¡AQUÍ ESTÁ LA CORRECCIÓN! ===
 # Cambia el propietario de TODOS los archivos a www-data
