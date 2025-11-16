@@ -19,6 +19,6 @@ class Sector extends Model
     ];
 
     public function dependencias () {
-        return $this->hasMany(Dependencia::class, 'sector_id', 'sector_id');
+        return $this->hasMany(Dependencia::class, 'sector_id', 'id_sector');
     }
 }

@@ -21,11 +21,11 @@ class Dependencia extends Model
     }
 
     public function edificios () {
-        return $this->hasMany(Edificio::class, 'id_dependencia', 'dependencia_id');
+        return $this->hasMany(Edificio::class, 'dependencia_id', 'id_dependencia');
     }
 
     public function presupuestos () {
-        return $this->hasMany(Presupuesto::class, 'id_dependencia', 'dependencia_id');
+        return $this->hasMany(Presupuesto::class, 'dependencia_id', 'id_dependencia');
     }
 
     public function usuarios () {

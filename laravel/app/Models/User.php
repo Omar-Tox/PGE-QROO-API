@@ -30,7 +30,7 @@ class User extends Authenticatable
         'nombre',
         'apellido',
         'email',
-        'contresena',
+        'contrasena',
         'activo',
     ];
 
@@ -40,14 +40,14 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $hidden = [
-        'contresena'
+        'contrasena'
     ];
 
     public function getAuthPassword() {
         return $this->contrasena;
     }
 
-    public function password (): Attribute {
+    public function contrasena (): Attribute {
         return Attribute::make(
             set: fn ($value) => Hash::make($value),
         );

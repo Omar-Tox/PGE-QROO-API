@@ -15,7 +15,6 @@ class ConsumoTiempoReal extends Model
     protected $filled = [
         'edificio_id',
         'id_sensor',
-        'timestamp_registro',
         'consumo_energetico',
         'potencia',
         'energia'
