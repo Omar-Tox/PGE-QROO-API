@@ -8,6 +8,7 @@ namespace App\Models;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use App\Models\Dependencia;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Support\Facades\Hash;
 
@@ -76,7 +77,7 @@ class User extends Authenticatable
      * @return bool
      */
 
-    public function hasPermissionFor(String $permissionName, App\Models\Dependencia $dependencia):bool {
+    public function hasPermissionFor(String $permissionName, Dependencia $dependencia):bool {
         $roles = $this->roles()
                     ->wherePivot('dependencia_id', $dependencia->id_dependencia)
                     ->with('permisos')
@@ -105,7 +106,7 @@ class User extends Authenticatable
      * @return bool
      */
 
-    public function hasGlobalPermission(String $permissionName): bool {
+    public function hasGlobalPermission(string $permissionName): bool {
 
         $globalDependenciaId = 1;
 
@@ -119,9 +120,10 @@ class User extends Authenticatable
         }
 
         foreach($roles as $rol) {
-            if($rol->permisos->contains('nombre_perniso', $permissionName)) return true;
+            if($rol->permisos->contains('nombre_permiso', $permissionName)) {
+                return true;
+            }
         }
-
-        return false;
+    return false;
     }
 }

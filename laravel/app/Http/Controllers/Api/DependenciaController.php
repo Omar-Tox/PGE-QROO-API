@@ -4,17 +4,21 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Dependencia;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class DependenciaController extends Controller
 {
+    use AuthorizesRequests;
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json(Dependencia::all());
+        $user = $request->user();
+        return response()->json($user->dependencias);
     }
 
     /**
@@ -42,7 +46,7 @@ class DependenciaController extends Controller
     {
         // Autorizamos usando el Gate 'ver-dependencia'.
         // Laravel pasa automáticamente el usuario autenticado y la $dependencia
-        $this->authorize('ver_dependencia', $dependencia);
+        $this->authorize('ver-dependencia', $dependencia);
 
         // Si pasa la autorización, mostrarlas
         $dependencia->load('edificios', 'presupuestos');
@@ -73,7 +77,7 @@ class DependenciaController extends Controller
     public function destroy(Dependencia $dependencia)
     {
         // Autorizar la acción de eliminar
-        $this->authorize('eliminar_dependencia', $dependencia);
+        $this->authorize('eliminar-dependencia', $dependencia);
 
         $dependencia->delete();
 

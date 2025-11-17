@@ -2,8 +2,8 @@
 
 namespace App\Providers;
 
-use Illuminate\App\Models\User;
-use Illuminate\App\Models\Dependencia;
+use App\Models\User;
+use App\Models\Dependencia;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
@@ -33,17 +33,17 @@ class AuthServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-
+        $this->registerPolicies();
         // =============================================================
         // GLOBAL GATES
         // =============================================================
 
-        Gate::define('crear_dependencia', function(User $user) {
-            return $user->hasGlobalPermisson('crear_dependencias');
+        Gate::define('crear-dependencia', function(User $user) {
+            return $user->hasGlobalPermission('crear_dependencias');
         });
 
         Gate::define('ver-lista-usuarios', function(User $user) {
-            return $user->hasGlobalPermisson('ver_usuarios_global');
+            return $user->hasGlobalPermission('ver_usuarios_global');
         });
 
         Gate::define('ver-dependencia', function(User $user, Dependencia $dependencia) {
@@ -53,19 +53,19 @@ class AuthServiceProvider extends ServiceProvider
         });
 
         Gate::define('actualizar-dependencia', function(User $user, Dependencia $dependencia) {
-            return $user->hasPermissonFor('editar_dependencias', $dependencia);
+            return $user->hasPermissionFor('editar_dependencias', $dependencia);
         });
 
-        Gate::define('eliminar_dependencia', function(User $user, Dependencia $dependencia) {
-            return $user->hasPermissonFor('eliminar_dependencias', $dependencia);
+        Gate::define('eliminar-dependencia', function(User $user, Dependencia $dependencia) {
+            return $user->hasPermissionFor('eliminar_dependencias', $dependencia);
         });
 
-        Gate::define('ver_presupuestos', function(User $user, Dependencia $dependencia) {
-            return $user->hasPermissonFor('ver_presupuestos', $dependencia);
+        Gate::define('ver-presupuestos', function(User $user, Dependencia $dependencia) {
+            return $user->hasPermissionFor('ver_presupuestos', $dependencia);
         });
 
         Gate::define('asignar-presupuesto', function(User $user, Dependencia $dependencia) {
-            return $user->hasPermissonFor('asignar_presupuestos', $dependencia);
+            return $user->hasPermissionFor('asignar_presupuestos', $dependencia);
         });
 
         /**
