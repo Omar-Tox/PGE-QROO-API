@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\User;
 use App\Models\Dependencia;
+use App\Models\Edificio;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
@@ -34,9 +35,8 @@ class AuthServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->registerPolicies();
-        // =============================================================
-        // GLOBAL GATES
-        // =============================================================
+        
+        // === Gates globales ===
 
         Gate::define('crear-dependencia', function(User $user) {
             return $user->hasGlobalPermission('crear_dependencias');
@@ -45,6 +45,8 @@ class AuthServiceProvider extends ServiceProvider
         Gate::define('ver-lista-usuarios', function(User $user) {
             return $user->hasGlobalPermission('ver_usuarios_global');
         });
+
+        // === Gates específicos para las dependencias ===
 
         Gate::define('ver-dependencia', function(User $user, Dependencia $dependencia) {
             return $user->dependencias()
@@ -60,6 +62,11 @@ class AuthServiceProvider extends ServiceProvider
             return $user->hasPermissionFor('eliminar_dependencias', $dependencia);
         });
 
+
+        /**
+         * Gates para presupuestos
+         */
+
         Gate::define('ver-presupuestos', function(User $user, Dependencia $dependencia) {
             return $user->hasPermissionFor('ver_presupuestos', $dependencia);
         });
@@ -67,10 +74,21 @@ class AuthServiceProvider extends ServiceProvider
         Gate::define('asignar-presupuesto', function(User $user, Dependencia $dependencia) {
             return $user->hasPermissionFor('asignar_presupuestos', $dependencia);
         });
+        
+        /**
+         * Gates para edificios
+         */
 
+        Gate::define('ver-edificios', function(User $user, Dependencia $dependencia){
+            return $user->hasPermissionFor('ver_edificios', $dependencia);
+        });
+
+        Gate::define('crear-edificio', function(User $user, Dependencia $dependencia) {
+            return $user->hasPermissionFor('crear_edificios', $dependencia);
+        });
         /**
          * Nota:
-         * Falta por agregar: 'ver_edificios', 'crear_edificio', 'cargar_consumos', etc.)
+         * Falta por agregar: 'cargar_consumos', etc.)
          */        
     }
 }

@@ -13,7 +13,7 @@ class Presupuesto extends Model
     protected $table = 'presupuestos';
     protected $primaryKey = 'id_presupuesto';
     public $timestamps = false;
-    protected $filled = [
+    protected $fillable = [
         'dependencia_id',
         'año',
         'trimestre',

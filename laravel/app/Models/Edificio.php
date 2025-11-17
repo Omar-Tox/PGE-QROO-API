@@ -11,7 +11,7 @@ class Edificio extends Model
 
     protected $table = 'edificio';
     protected $primaryKey = 'id_edificio';
-    public $timestamp = false;
+    public $timestamps = false;
 
     protected $fillable = [
         'dependencia_id',
@@ -31,6 +31,6 @@ class Edificio extends Model
     }
 
     public function consumoTiempoReal () {
-        return $this-hasMany(ConsumoTiempoReal::class, 'edificio_id', 'id_edificio');
+        return $this->hasMany(ConsumoTiempoReal::class, 'edificio_id', 'id_edificio');
     }
 }
