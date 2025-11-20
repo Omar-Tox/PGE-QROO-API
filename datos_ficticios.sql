@@ -12,7 +12,7 @@ INSERT INTO sector (nombre_sector, descripcion) VALUES
 -- =============================================================
 -- DEPENDENCIAS
 -- =============================================================
-INSERT INTO dependencias (nombre_dependencia, id_sector) VALUES
+INSERT INTO dependencias (nombre_dependencia, sector_id) VALUES
 ('Secretaría de Educación de Quintana Roo (SEQ)', 1),
 ('Universidad de Quintana Roo (UQROO)', 1),
 ('Secretaría de Salud de Quintana Roo (SESA)', 2),
