@@ -1,9 +1,8 @@
 # app/db/models.py
 
 from sqlalchemy.orm import DeclarativeBase, relationship, Mapped, mapped_column
-from sqlalchemy import (
-    String, Integer, ForeignKey, Numeric, TIMESTAMP, Text
-)
+from sqlalchemy import String, Integer, ForeignKey, Numeric, TIMESTAMP, Text, BigInteger
+
 
 class Base(DeclarativeBase):
     """Base declarativa para todos los modelos ORM."""
@@ -11,7 +10,7 @@ class Base(DeclarativeBase):
 
 
 # ============================
-# 📌 Tabla: sector
+#  Tabla: sector
 # ============================
 class Sector(Base):
     __tablename__ = "sector"
@@ -24,7 +23,7 @@ class Sector(Base):
 
 
 # ============================
-# 📌 Tabla: dependencias
+#  Tabla: dependencias
 # ============================
 class Dependencia(Base):
     __tablename__ = "dependencias"
@@ -41,7 +40,7 @@ class Dependencia(Base):
 
 
 # ============================
-# 📌 Tabla: edificio
+#  Tabla: edificio
 # ============================
 class Edificio(Base):
     __tablename__ = "edificio"
@@ -61,7 +60,7 @@ class Edificio(Base):
 
 
 # ============================
-# 📌 Tabla: consumo_historico
+#  Tabla: consumo_historico
 # ============================
 class ConsumoHistorico(Base):
     __tablename__ = "consumo_historico"
@@ -70,7 +69,7 @@ class ConsumoHistorico(Base):
     # FK correcta: edificio_id
     edificio_id: Mapped[int] = mapped_column(ForeignKey("edificio.id_edificio"))
 
-    # 📌 CORRECCIÓN CRÍTICA: Mapeamos el atributo 'anio' a la columna "año" de la DB
+   
     anio: Mapped[int] = mapped_column("año", Integer)
     
     mes: Mapped[int] = mapped_column(Integer)
@@ -85,7 +84,7 @@ class ConsumoHistorico(Base):
 
 
 # ============================
-# 📌 Tabla: presupuestos
+# Tabla: presupuestos
 # ============================
 class Presupuesto(Base):
     __tablename__ = "presupuestos"
@@ -94,10 +93,39 @@ class Presupuesto(Base):
     # FK correcta: dependencia_id
     dependencia_id: Mapped[int] = mapped_column(ForeignKey("dependencias.id_dependencia"))
 
-    # 📌 CORRECCIÓN CRÍTICA: Mapeamos 'anio' a "año" aquí también
+   
     anio: Mapped[int] = mapped_column("año", Integer)
     
     trimestre: Mapped[int] = mapped_column(Integer)
     monto_asignado: Mapped[float] = mapped_column(Numeric(18, 2))
 
     dependencia = relationship("Dependencia", back_populates="presupuestos")
+    
+
+# ============================
+# Tabla: personal_access_tokens (Laravel Sanctum)
+# ============================
+class PersonalAccessToken(Base):
+    __tablename__ = "personal_access_tokens"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    tokenable_type: Mapped[str] = mapped_column(String(255))
+    tokenable_id: Mapped[int] = mapped_column(BigInteger) # Este es el ID del usuario
+    name: Mapped[str] = mapped_column(String(255))
+    token: Mapped[str] = mapped_column(String(64), unique=True) # El hash del token
+    abilities: Mapped[str | None] = mapped_column(Text, nullable=True)
+    last_used_at: Mapped[str | None] = mapped_column(TIMESTAMP, nullable=True)
+    expires_at: Mapped[str | None] = mapped_column(TIMESTAMP, nullable=True)
+    created_at: Mapped[str | None] = mapped_column(TIMESTAMP, nullable=True)
+    updated_at: Mapped[str | None] = mapped_column(TIMESTAMP, nullable=True)
+
+# ============================
+# Tabla: users (Laravel)
+# ============================
+# Necesitamos mapear al menos lo básico para saber quién es y su dependencia
+class User(Base):
+    __tablename__ = "users"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    name: Mapped[str] = mapped_column(String(255))
+    email: Mapped[str] = mapped_column(String(255), unique=True)
