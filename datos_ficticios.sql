@@ -12,7 +12,7 @@ INSERT INTO sector (nombre_sector, descripcion) VALUES
 -- =============================================================
 -- DEPENDENCIAS
 -- =============================================================
-INSERT INTO dependencias (nombre_dependencia, id_sector) VALUES
+INSERT INTO dependencias (nombre_dependencia, sector_id) VALUES
 ('Secretaría de Educación de Quintana Roo (SEQ)', 1),
 ('Universidad de Quintana Roo (UQROO)', 1),
 ('Secretaría de Salud de Quintana Roo (SESA)', 2),
@@ -51,7 +51,7 @@ BEGIN
     FOR dep_id IN 1..10 LOOP
         FOR año IN 2015..2024 LOOP
             FOR trim IN 1..4 LOOP
-                INSERT INTO presupuestos (id_dependencia, año, trimestre, monto_asignado)
+                INSERT INTO presupuestos (dependencia_id, año, trimestre, monto_asignado)
                 VALUES (dep_id, año, trim, ROUND((RANDOM() * 7000000 + 1500000)::NUMERIC, 2));
             END LOOP;
         END LOOP;
@@ -72,7 +72,7 @@ BEGIN
         FOR año IN 2015..2025 LOOP
             FOR mes IN 1..12 LOOP
                 consumo := ROUND((RANDOM() * 35000 + 3000)::NUMERIC, 2);
-                INSERT INTO consumo_historico (id_edificio, año, mes, consumo_kwh, costo_total, fuente_dato)
+                INSERT INTO consumo_historico (edificio_id, año, mes, consumo_kwh, costo_total, fuente_dato)
                 VALUES (edif_id, año, mes, consumo, ROUND(consumo * (RANDOM() * 1.8 + 0.8)::NUMERIC, 2), 'CFE');
             END LOOP;
         END LOOP;
