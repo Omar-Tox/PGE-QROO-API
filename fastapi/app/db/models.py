@@ -31,7 +31,8 @@ class Dependencia(Base):
 
     id_dependencia: Mapped[int] = mapped_column(primary_key=True)
     nombre_dependencia: Mapped[str] = mapped_column(String(255), unique=True)
-    id_sector: Mapped[int | None] = mapped_column(ForeignKey("sector.id_sector"))
+    # FK correcta: sector_id
+    sector_id: Mapped[int | None] = mapped_column(ForeignKey("sector.id_sector"))
     fecha_alta: Mapped[str] = mapped_column(TIMESTAMP)
 
     sector = relationship("Sector", back_populates="dependencias")
@@ -46,7 +47,8 @@ class Edificio(Base):
     __tablename__ = "edificio"
 
     id_edificio: Mapped[int] = mapped_column(primary_key=True)
-    id_dependencia: Mapped[int] = mapped_column(ForeignKey("dependencias.id_dependencia"))
+    # FK correcta: dependencia_id
+    dependencia_id: Mapped[int] = mapped_column(ForeignKey("dependencias.id_dependencia"))
     nombre_edificio: Mapped[str] = mapped_column(String(255))
 
     direccion: Mapped[str | None] = mapped_column(String(500))
@@ -65,9 +67,12 @@ class ConsumoHistorico(Base):
     __tablename__ = "consumo_historico"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    id_edificio: Mapped[int] = mapped_column(ForeignKey("edificio.id_edificio"))
+    # FK correcta: edificio_id
+    edificio_id: Mapped[int] = mapped_column(ForeignKey("edificio.id_edificio"))
 
-    anio: Mapped[int] = mapped_column(Integer)
+    # 📌 CORRECCIÓN CRÍTICA: Mapeamos el atributo 'anio' a la columna "año" de la DB
+    anio: Mapped[int] = mapped_column("año", Integer)
+    
     mes: Mapped[int] = mapped_column(Integer)
 
     consumo_kwh: Mapped[float] = mapped_column(Numeric(18, 2))
@@ -86,9 +91,12 @@ class Presupuesto(Base):
     __tablename__ = "presupuestos"
 
     id_presupuesto: Mapped[int] = mapped_column(primary_key=True)
-    id_dependencia: Mapped[int] = mapped_column(ForeignKey("dependencias.id_dependencia"))
+    # FK correcta: dependencia_id
+    dependencia_id: Mapped[int] = mapped_column(ForeignKey("dependencias.id_dependencia"))
 
-    anio: Mapped[int] = mapped_column(Integer)
+    # 📌 CORRECCIÓN CRÍTICA: Mapeamos 'anio' a "año" aquí también
+    anio: Mapped[int] = mapped_column("año", Integer)
+    
     trimestre: Mapped[int] = mapped_column(Integer)
     monto_asignado: Mapped[float] = mapped_column(Numeric(18, 2))
 

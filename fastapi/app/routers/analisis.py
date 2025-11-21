@@ -7,7 +7,7 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
-# 📌 CORRECCIÓN CLAVE: Usar la dependencia SÍNCRONA
+
 from app.db.connection import get_session
 
 from app.services import analisis_service as service
@@ -65,7 +65,7 @@ def consumo_promedio_anual(id_edificio: int, db: Session = Depends(get_session))
 @router.get("/estacionalidad/{id_edificio}")
 def estacionalidad(id_edificio: int, db: Session = Depends(get_session)):
     """
-    Promedio histórico por mes (1–12).
+    Promedio histórico por mes (1-12).
     """
     return service.estacionalidad(db, id_edificio)
 

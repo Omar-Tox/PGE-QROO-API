@@ -1,4 +1,3 @@
-
 -- =============================================================
 -- SECTORES
 -- =============================================================
@@ -26,8 +25,9 @@ INSERT INTO dependencias (nombre_dependencia, sector_id) VALUES
 
 -- =============================================================
 -- EDIFICIOS
+-- Nota: Se cambió id_dependencia por dependencia_id
 -- =============================================================
-INSERT INTO edificio (id_dependencia, nombre_edificio, direccion, latitud, longitud, caracteristicas) VALUES
+INSERT INTO edificio (dependencia_id, nombre_edificio, direccion, latitud, longitud, caracteristicas) VALUES
 (1, 'Edificio Central SEQ', 'Av. Insurgentes 123, Chetumal, Q. Roo', 18.500000, -88.300000, 'Oficinas administrativas principales'),
 (2, 'Campus Chetumal UQROO', 'Blvd. Bahía s/n, Chetumal, Q. Roo', 18.505000, -88.285000, 'Campus universitario principal'),
 (3, 'Hospital General de Chetumal', 'Av. Independencia 456, Chetumal', 18.510000, -88.290000, 'Hospital regional con alta demanda'),
