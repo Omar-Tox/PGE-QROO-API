@@ -6,7 +6,12 @@ RUN apt-get update && apt-get install -y \
     git \
     unzip \
     libpq-dev \
-    && docker-php-ext-install pdo pdo_pgsql
+    libzip-dev \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install pdo pdo_pgsql zip gd
 
 # Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
@@ -18,15 +23,10 @@ WORKDIR /var/www/html
 COPY . .
 
 # Install Laravel dependencies
-# RUN composer install --no-dev --optimize-autoloader
 RUN composer install --no-dev --no-scripts --optimize-autoloader
 
-# === ¡AQUÍ ESTÁ LA CORRECCIÓN! ===
 # Cambia el propietario de TODOS los archivos a www-data
 RUN chown -R www-data:www-data /var/www/html
-
-# Esta línea también es buena, pero la de arriba es más completa
-# RUN chown -R www-data:www-data storage bootstrap/cache
 
 RUN apt-get update && apt-get install -y procps
 

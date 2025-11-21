@@ -89,8 +89,8 @@ class AuthServiceProvider extends ServiceProvider
 
         // Gate de cargar consumo
         
-        Gate::define('cargar-consumos', function(User $user, Dependencia $dependencia){
-            if($user->hasPermissionGlobal('cargar_consumos')) {
+        Gate::define('cargar-consumos', function(User $user){
+            if($user->hasGlobalPermission('cargar_consumos')) {
                 return true;
             }
 

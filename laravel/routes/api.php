@@ -6,6 +6,8 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DependenciaController;
 use App\Http\Controllers\Api\EdificioController;
 use App\Http\Controllers\Api\PresupuestoController;
+use App\Http\Controllers\Api\ConsumoController;
+use App\Http\Controllers\Api\DashboardController;
 
 
 //----- RUTAS DEL SISTEMA -----
@@ -41,4 +43,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/dependencias/{dependencia}/presupuestos', [PresupuestoController::class, 'index']);
     Route::post('/dependencias/{dependencia}/presupuestos', [PresupuestoController::class, 'store']);
 
+    /**
+     * Rutas para la importación de datos mediante el csv
+     */
+
+    Route::post('/consumos/carga-masiva', [ConsumoController::class, 'cargaMasiva']);
+
+    Route::get('/dashboard', [DashboardController::class, 'index']);
 });
