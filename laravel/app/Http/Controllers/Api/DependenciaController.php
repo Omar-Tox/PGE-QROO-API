@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Dependencia;
+use App\Models\Edificio;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -18,7 +19,15 @@ class DependenciaController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        return response()->json($user->dependencias);
+
+        $dependencias = $user->dependencias()
+                        ->with('edificios')
+                        ->withCount('edificios')
+                        ->get();
+
+
+
+        return response()->json($dependencias);
     }
 
     /**
@@ -49,7 +58,9 @@ class DependenciaController extends Controller
         $this->authorize('ver-dependencia', $dependencia);
 
         // Si pasa la autorización, mostrarlas
-        $dependencia->load('edificios', 'presupuestos');
+        $dependencia->load('edificios', 'presupuestos')
+                    ->loadCount('edificios');
+
         return response()->json($dependencia);
     }
 
