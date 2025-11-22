@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     # 📌 NUEVO: Configuración de CORS
     # Definimos que es una lista de URLs
     BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = []
-
+    LARAVEL_LOGIN_URL: str    
     # Validador: Convierte el string del .env a una lista real de Python
     @field_validator("BACKEND_CORS_ORIGINS", mode="before")
     @classmethod

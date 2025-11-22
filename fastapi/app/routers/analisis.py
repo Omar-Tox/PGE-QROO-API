@@ -1,107 +1,216 @@
 # ============================================================
 #  app/routers/analisis.py
-#  Endpoints reales para análisis energético
-#  CORREGIDO: Apunta a la dependencia SÍNCRONA (get_session)
+#  Endpoints PRIVADOS Consolidados + Filtro Opcional
 # ============================================================
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.orm import Session
-
+from typing import Optional
+from app.schemas.analisis_schemas import (
+    DashboardKpisResponse, DashboardEvolucionResponse, 
+    DashboardTendenciaResponse, DashboardRankingResponse
+)
 from app.db.connection import get_session
 from app.services import analisis_service as service
-from app.core.security import get_current_user # <--- Importar seguridad
+from app.core.security import get_current_user
 from app.db.models import User
 
 router = APIRouter(
     prefix="/analisis",
-    tags=["Análisis Energético (Privado)"]
+    tags=["Dashboard Privado (Mi Dependencia)"]
 )
 
-# ============================================================
-# NOTA DE SEGURIDAD:
-# Todos los endpoints ahora requieren un token válido de Laravel.
-# El usuario se inyecta en 'current_user'.
-# ============================================================
-
-@router.get("/consumo-total-anual/{id_edificio}")
-def consumo_total_anual(
-    id_edificio: int, 
+@router.get("/dashboard/kpis", summary="Resumen Ejecutivo Anual", response_model=DashboardKpisResponse)
+def dashboard_kpis(
+    anio: int = Query(..., example=2024),
+    dependencia_id: Optional[int] = Query(None),
     db: Session = Depends(get_session),
-    current_user: User = Depends(get_current_user) # 🔒 Candado
+    current_user: User = Depends(get_current_user)
 ):
-    return service.consumo_total_anual(db, id_edificio)
+    ids = service.obtener_edificios_usuario(db, current_user.id_usuario, dependencia_id)
+    if not ids:
+         # Manejo de error
+         return service.kpis_anuales(db, [], anio)
+    return service.kpis_anuales(db, ids, anio)
 
 
-@router.get("/consumo-mensual/{id_edificio}/{anio}")
-def consumo_mensual(
-    id_edificio: int, 
-    anio: int, 
+@router.get("/dashboard/evolucion", summary="Gráfica Mensual", response_model=DashboardEvolucionResponse)
+def dashboard_evolucion(
+    anio: int = Query(..., example=2024),
+    dependencia_id: Optional[int] = Query(None),
     db: Session = Depends(get_session),
-    current_user: User = Depends(get_current_user) # 🔒 Candado
+    current_user: User = Depends(get_current_user)
 ):
-    return service.consumo_mensual(db, id_edificio, anio)
+    ids = service.obtener_edificios_usuario(db, current_user.id_usuario, dependencia_id)
+    return service.evolucion_mensual_agregada(db, ids, anio)
 
 
-@router.get("/costo-anual/{id_edificio}")
-def costo_total_anual(
-    id_edificio: int, 
-    db: Session = Depends(get_session),
-    current_user: User = Depends(get_current_user) # 🔒 Candado
-):
-    return service.costo_total_anual(db, id_edificio)
-
-
-@router.get("/consumo-promedio-anual/{id_edificio}")
-def consumo_promedio_anual(
-    id_edificio: int, 
-    db: Session = Depends(get_session),
-    current_user: User = Depends(get_current_user) # 🔒 Candado
-):
-    return service.consumo_promedio_anual(db, id_edificio)
-
-
-@router.get("/estacionalidad/{id_edificio}")
-def estacionalidad(
-    id_edificio: int, 
-    db: Session = Depends(get_session),
-    current_user: User = Depends(get_current_user) # 🔒 Candado
-):
-    return service.estacionalidad(db, id_edificio)
-
-
-@router.get("/ranking/{id_edificio}")
-def ranking_consumo(
-    id_edificio: int,
-    top: int = Query(5, ge=1, le=50),
-    db: Session = Depends(get_session),
-    current_user: User = Depends(get_current_user) # 🔒 Candado
-):
-    return service.ranking_meses(db, id_edificio, top)
-
-
-@router.get("/tendencia/{id_edificio}")
-def tendencia(
-    id_edificio: int,
+@router.get("/dashboard/tendencia", summary="Tendencia Histórica", response_model=DashboardTendenciaResponse)
+def dashboard_tendencia(
     window: int = Query(3, ge=1, le=12),
+    dependencia_id: Optional[int] = Query(None),
     db: Session = Depends(get_session),
-    current_user: User = Depends(get_current_user) # 🔒 Candado
+    current_user: User = Depends(get_current_user)
 ):
-    return service.tendencia(db, id_edificio, window)
+    ids = service.obtener_edificios_usuario(db, current_user.id_usuario, dependencia_id)
+    return service.tendencia_agregada(db, ids, window)
 
 
-@router.get("/anio-mayor-consumo/{id_edificio}")
-def anio_mayor_consumo(
-    id_edificio: int, 
+@router.get("/dashboard/ranking", summary="Top Consumo Interno", response_model=DashboardRankingResponse)
+def dashboard_ranking(
+    anio: int = Query(..., example=2024),
+    dependencia_id: Optional[int] = Query(None),
     db: Session = Depends(get_session),
-    current_user: User = Depends(get_current_user) # 🔒 Candado
+    current_user: User = Depends(get_current_user)
 ):
-    return service.anio_mayor_consumo(db, id_edificio)
+    ids = service.obtener_edificios_usuario(db, current_user.id_usuario, dependencia_id)
+    return service.ranking_interno_usuario(db, ids, anio)
+# # ------------------------------------------------------------
+# # 1. Dashboard KPIs (Resumen Ejecutivo)
+# # ------------------------------------------------------------
+# @router.get("/dashboard/kpis", summary="Resumen Ejecutivo Anual")
+# def dashboard_kpis(
+#     anio: int = Query(..., example=2024),
+#     dependencia_id: Optional[int] = Query(None, description="Opcional: Filtrar por ID de una dependencia específica permitida"),
+#     db: Session = Depends(get_session),
+#     current_user: User = Depends(get_current_user)
+# ):
+#     """
+#     Obtiene los indicadores clave (KPIs).
+#     Si se envía 'dependencia_id', muestra solo los datos de esa dependencia (si tiene permiso).
+#     Si no, muestra el agregado de TODAS sus dependencias.
+#     """
+#     ids = service.obtener_edificios_usuario(db, current_user.id_usuario, dependencia_id)
+    
+#     if not ids:
+#         if dependencia_id:
+#             raise HTTPException(status_code=403, detail="No tienes acceso a esta dependencia o no tiene edificios")
+#         return {"mensaje": "No tienes edificios asignados", "kpis": {}}
+
+#     return service.kpis_anuales(db, ids, anio)
 
 
-@router.get("/ahorro-potencial/{id_edificio}")
-def ahorro_potencial(
-    id_edificio: int, 
-    db: Session = Depends(get_session),
-    current_user: User = Depends(get_current_user) # 🔒 Candado
-):
-    return service.potencial_ahorro(db, id_edificio)
+# # ------------------------------------------------------------
+# # 2. Dashboard Gráfica Temporal (Evolución)
+# # ------------------------------------------------------------
+# @router.get("/dashboard/evolucion", summary="Gráfica Mensual (kWh y $)")
+# def dashboard_evolucion(
+#     anio: int = Query(..., example=2024),
+#     dependencia_id: Optional[int] = Query(None, description="Opcional: Filtrar por dependencia"),
+#     db: Session = Depends(get_session),
+#     current_user: User = Depends(get_current_user)
+# ):
+#     ids = service.obtener_edificios_usuario(db, current_user.id_usuario, dependencia_id)
+#     return service.evolucion_mensual_agregada(db, ids, anio)
+
+
+# # ------------------------------------------------------------
+# # 3. Dashboard Tendencia (Histórico)
+# # ------------------------------------------------------------
+# @router.get("/dashboard/tendencia", summary="Tendencia Histórica (Rolling Mean)")
+# def dashboard_tendencia(
+#     window: int = Query(3, ge=1, le=12),
+#     dependencia_id: Optional[int] = Query(None, description="Opcional: Filtrar por dependencia"),
+#     db: Session = Depends(get_session),
+#     current_user: User = Depends(get_current_user)
+# ):
+#     ids = service.obtener_edificios_usuario(db, current_user.id_usuario, dependencia_id)
+#     return service.tendencia_agregada(db, ids, window)
+
+
+# # ------------------------------------------------------------
+# # 4. Dashboard Ranking (Mis Edificios)
+# # ------------------------------------------------------------
+# @router.get("/dashboard/ranking", summary="Top Consumo Interno")
+# def dashboard_ranking(
+#     anio: int = Query(..., example=2024),
+#     dependencia_id: Optional[int] = Query(None, description="Opcional: Filtrar por dependencia"),
+#     db: Session = Depends(get_session),
+#     current_user: User = Depends(get_current_user)
+# ):
+#     ids = service.obtener_edificios_usuario(db, current_user.id_usuario, dependencia_id)
+#     return service.ranking_interno_usuario(db, ids, anio)
+
+
+# # ============================================================
+# #  app/routers/analisis.py
+# #  Endpoints PRIVADOS Consolidados
+# # ============================================================
+
+# from fastapi import APIRouter, Depends, Query, HTTPException
+# from sqlalchemy.orm import Session
+
+# from app.db.connection import get_session
+# from app.services import analisis_service as service
+# from app.core.security import get_current_user
+# from app.db.models import User
+
+# router = APIRouter(
+#     prefix="/analisis",
+#     tags=["Dashboard Privado (Mi Dependencia)"]
+# )
+
+# # ------------------------------------------------------------
+# # 1. Dashboard KPIs (Resumen Ejecutivo)
+# # ------------------------------------------------------------
+# @router.get("/dashboard/kpis", summary="Resumen Ejecutivo Anual")
+# def dashboard_kpis(
+#     anio: int = Query(..., example=2024),
+#     db: Session = Depends(get_session),
+#     current_user: User = Depends(get_current_user)
+# ):
+#     """
+#     Obtiene los indicadores clave (KPIs) agregados de TODOS los edificios 
+#     a los que el usuario tiene acceso (vía usuario_dependencia_roles).
+#     """
+#     # 1. Obtener IDs permitidos para este usuario
+#     ids = service.obtener_edificios_usuario(db, current_user.id_usuario)
+    
+#     if not ids:
+#         # Si el usuario existe pero no tiene dependencias asignadas
+#         return {"mensaje": "No tienes edificios asignados", "kpis": {}}
+
+#     # 2. Calcular KPIs agregados
+#     return service.kpis_anuales(db, ids, anio)
+
+
+# # ------------------------------------------------------------
+# # 2. Dashboard Gráfica Temporal (Evolución)
+# # ------------------------------------------------------------
+# @router.get("/dashboard/evolucion", summary="Gráfica Mensual (kWh y $)")
+# def dashboard_evolucion(
+#     anio: int = Query(..., example=2024),
+#     db: Session = Depends(get_session),
+#     current_user: User = Depends(get_current_user)
+# ):
+#     ids = service.obtener_edificios_usuario(db, current_user.id_usuario)
+#     return service.evolucion_mensual_agregada(db, ids, anio)
+
+
+# # ------------------------------------------------------------
+# # 3. Dashboard Tendencia (Histórico)
+# # ------------------------------------------------------------
+# @router.get("/dashboard/tendencia", summary="Tendencia Histórica (Rolling Mean)")
+# def dashboard_tendencia(
+#     window: int = Query(3, ge=1, le=12),
+#     db: Session = Depends(get_session),
+#     current_user: User = Depends(get_current_user)
+# ):
+#     ids = service.obtener_edificios_usuario(db, current_user.id_usuario)
+#     return service.tendencia_agregada(db, ids, window)
+
+
+# # ------------------------------------------------------------
+# # 4. Dashboard Ranking (Mis Edificios)
+# # ------------------------------------------------------------
+# @router.get("/dashboard/ranking", summary="Top Consumo Interno")
+# def dashboard_ranking(
+#     anio: int = Query(..., example=2024),
+#     db: Session = Depends(get_session),
+#     current_user: User = Depends(get_current_user)
+# ):
+#     """
+#     Muestra cuáles de TUS edificios están consumiendo más energía.
+#     """
+#     ids = service.obtener_edificios_usuario(db, current_user.id_usuario)
+#     return service.ranking_interno_usuario(db, ids, anio)

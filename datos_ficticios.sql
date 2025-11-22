@@ -39,6 +39,15 @@ INSERT INTO edificio (dependencia_id, nombre_edificio, direccion, latitud, longi
 (9, 'Oficinas IFEQROO', 'Av. Álvaro Obregón 612, Chetumal', 18.507000, -88.291000, 'Dirección de infraestructura escolar'),
 (10, 'Centro de Salud Mental SESA', 'Av. Erick Paolo Martínez 789, Chetumal', 18.512000, -88.287000, 'Unidad especializada en salud mental');
 
+
+-- ASIGNAR USUARIO 1 A TODAS LAS DEPENDENCIAS COMO SUPER ADMIN (ROL 1)
+INSERT INTO usuario_dependencia_roles (usuario_id, dependencia_id, rol_id)
+SELECT 
+    1 as usuario_id,  -- ID del usuario admin_pge
+    id_dependencia,   -- ID de cada dependencia
+    1 as rol_id       -- ID del rol Super Admin
+FROM dependencias;
+
 -- =============================================================
 -- PRESUPUESTOS (2015 - 2025)
 -- =============================================================

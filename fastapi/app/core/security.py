@@ -3,59 +3,48 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from sqlalchemy import select
-from typing import Optional
 
+from app.core.config import settings
 from app.db.connection import get_session
 from app.db.models import PersonalAccessToken, User
 
-# Esquema OAuth2 (Le dice a Swagger UI que pida un token)
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login") # La URL es simbólica aquí
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl=settings.LARAVEL_LOGIN_URL)
 
 def get_current_user(
     token: str = Depends(oauth2_scheme), 
     db: Session = Depends(get_session)
 ) -> User:
-    """
-    Valida el token de Sanctum y devuelve el usuario actual.
-    """
-    # 1. Sanctum espera el token en formato "id|token_plano"
+    # 1. Validar formato
     if "|" not in token:
-        # A veces el cliente envía solo el token plano, intentamos manejarlo
         raw_token = token
     else:
-        # Extraemos la parte del hash (lo que está después del |)
         try:
-            tokenId, raw_token = token.split("|", 1)
+            _, raw_token = token.split("|", 1)
         except ValueError:
-             raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Formato de token inválido",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
+             raise HTTPException(status_code=401, detail="Token inválido")
 
-    # 2. Hashear el token (SHA-256) para compararlo con la DB
+    # 2. Hashear
     hashed_token = hashlib.sha256(raw_token.encode()).hexdigest()
 
-    # 3. Buscar en la base de datos
+    # 3. Buscar token
     stmt = select(PersonalAccessToken).where(PersonalAccessToken.token == hashed_token)
     access_token = db.execute(stmt).scalar_one_or_none()
 
     if not access_token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token inválido o expirado",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        raise HTTPException(status_code=401, detail="Token expirado o inválido")
 
-    # 4. Buscar el usuario asociado
-    # Asumimos que tokenable_type es 'App\Models\User'
-    user_stmt = select(User).where(User.id == access_token.tokenable_id)
+    # 4. Buscar usuario (Tabla 'usuarios', PK 'id_usuario')
+    # IMPORTANTE: SQLAlchemy usa 'joinedload' por defecto para relaciones simples, 
+    # pero para la validación de permisos necesitamos cargar las dependencias.
+    # Lo haremos en el paso de validación de permisos para no hacer pesada esta función.
+    
+    user_stmt = select(User).where(User.id_usuario == access_token.tokenable_id)
     user = db.execute(user_stmt).scalar_one_or_none()
 
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Usuario no encontrado",
-        )
+        raise HTTPException(status_code=401, detail="Usuario no encontrado")
+    
+    if not user.activo:
+         raise HTTPException(status_code=401, detail="Usuario inactivo")
 
     return user

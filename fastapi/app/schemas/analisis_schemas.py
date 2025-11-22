@@ -101,7 +101,83 @@ class MetricaPresupuestal(BaseModel):
     gasto_total_energia: float
     porcentaje_ejecutado: float # Cuánto del presupuesto se fue en luz
     ahorro_o_deficit: float
+# =========================================================
+# 🆕 NUEVO SCHEMA: KPIs Reales del Dashboard Privado
+# =========================================================
 
+class DashboardKpisResponse(BaseModel):
+    anio: int
+    
+    # Métricas de Consumo
+    total_kwh: float
+    promedio_kwh: float
+    
+    # Análisis Financiero Real
+    costo_total_energia: float      # Lo que se pagó a CFE
+    presupuesto_asignado: float     # Dinero que tenía la dependencia
+    balance_financiero: float       # (Presupuesto - Costo) -> Si es negativo, gastaron de más
+    estado_presupuestal: str        # "Superávit" o "Déficit"
+    
+    # Contexto (Origen de los datos)
+    dependencias_involucradas: List[str] # Nombres de las dependencias analizada
+    
+    
+    
+
+# =========================================================
+# 🆕 NUEVO SCHEMA: KPIs Reales del Dashboard Privado
+# =========================================================
+
+class DashboardKpisResponse(BaseModel):
+    anio: int
+    total_kwh: float
+    promedio_kwh: float
+    costo_total_energia: float
+    presupuesto_asignado: float
+    balance_financiero: float
+    estado_presupuestal: str
+    dependencias_involucradas: List[str]
+
+# =========================================================
+# 🆕 SCHEMAS PARA GRÁFICAS PRIVADAS (CON CONTEXTO)
+# =========================================================
+
+class DashboardEvolucionResponse(BaseModel):
+    anio: int
+    eje_x: List[str]
+    serie_consumo_kwh: List[float]
+    serie_costo: List[float]
+    dependencias_involucradas: List[str]
+
+class DashboardTendenciaItem(BaseModel):
+    anio: int
+    mes: int
+    consumo_kwh: float
+    tendencia: Optional[float]
+
+class DashboardTendenciaResponse(BaseModel):
+    historico: List[DashboardTendenciaItem]
+    dependencias_involucradas: List[str]
+
+class DashboardRankingResponse(BaseModel):
+    nombres: List[str]
+    valores: List[float]
+    dependencias_involucradas: List[str]
+
+# =========================================================
+# 🆕 SCHEMAS PARA GRÁFICAS PÚBLICAS
+# =========================================================
+
+class SerieDatos(BaseModel):
+    nombre: str
+    datos: List[float]
+    color: Optional[str] = None
+
+class RespuestaComparativa(BaseModel):
+    titulo: str
+    eje_x: List[str]
+    series: List[SerieDatos]
+    dependencias_involucradas: List[str] = [] # Nuevo campo con valor por defecto
 # # app/schemas/analisis_schemas.py
 
 # from pydantic import BaseModel
