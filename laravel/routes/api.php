@@ -8,6 +8,8 @@ use App\Http\Controllers\Api\EdificioController;
 use App\Http\Controllers\Api\PresupuestoController;
 use App\Http\Controllers\Api\ConsumoController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\ComparativaController;
+use App\Http\Controllers\Api\UserController;
 
 
 //----- RUTAS DEL SISTEMA -----
@@ -49,5 +51,18 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/consumos/carga-masiva', [ConsumoController::class, 'cargaMasiva']);
 
+    /**
+     * Rutas correspondientes al dashboard
+     */
     Route::get('/dashboard', [DashboardController::class, 'index']);
+
+    /**
+     * Rutas para análisis
+     */
+    Route::get('/analisis/ranking-dependencias',[ComparativaController::class, 'index']);
+
+    /**
+     * Rutas Gestión de usuarios
+     */
+    Route::apiResource('usuarios', UserController::class);
 });

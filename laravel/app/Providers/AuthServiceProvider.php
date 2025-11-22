@@ -46,6 +46,10 @@ class AuthServiceProvider extends ServiceProvider
             return $user->hasGlobalPermission('ver_usuarios_global');
         });
 
+        // gate::define('crear-usuario'), function(User $user) {
+        //     return $user->hasGlobalPermission('crear_usuario');
+        // }
+
         // === Gates específicos para las dependencias ===
 
         Gate::define('ver-dependencia', function(User $user, Dependencia $dependencia) {
