@@ -19,6 +19,11 @@ scipy>=1.12.0
 scikit-learn>=1.5.0
 prophet>=1.1.5
 
+#IA y Rate Limiting
+google-generativeai>=0.3.0
+pyyaml>=6.0
+slowapi>=0.1.9
+
 # Visualización (opcional, si vas a generar reportes o dashboards automáticos)
 matplotlib>=3.9.0
 seaborn>=0.13.0

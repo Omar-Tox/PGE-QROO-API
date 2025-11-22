@@ -645,6 +645,25 @@ def ranking_interno_usuario(db: Session, ids_edificios: List[int], anio: int) ->
         "valores": [float(r.total) for r in resultados],
         "dependencias_involucradas": deps_names
     }
+
+# ============================================================
+#  HELPER PARA PREDICCIONES (Contexto de Dependencia)
+# ============================================================
+
+def obtener_mis_dependencias_ids(db: Session, user_id: int) -> List[int]:
+    """
+    Retorna la lista de IDs de dependencias asignadas al usuario.
+    Útil para seleccionar una por defecto si no se especifica filtro.
+    """
+    stmt = select(usuario_dependencia_roles.c.dependencia_id).where(
+        usuario_dependencia_roles.c.usuario_id == user_id
+    )
+    return list(db.execute(stmt).scalars().all())
+
+def obtener_nombre_dependencia(db: Session, id_dependencia: int) -> str:
+    stmt = select(Dependencia.nombre_dependencia).where(Dependencia.id_dependencia == id_dependencia)
+    nombre = db.execute(stmt).scalar()
+    return nombre if nombre else "Desconocida"
 # # ============================================================
 # #  app/services/analisis_service.py
 # #  Versión Final: Soporte para filtrado por dependencia en dashboard privado

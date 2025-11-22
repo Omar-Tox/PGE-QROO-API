@@ -1,8 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 import psycopg # Driver directo para el test de DB (como lo tenías)
 
 from app.core.config import settings
+
+from app.core.limiter import limiter 
 from app.routers import analisis, prediccion_router, catalogos, analisis_publico
 
 app = FastAPI(
@@ -18,12 +22,15 @@ Incluye:
     version="1.0.1"
 )
 
+# Registrar limiter en la app
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
 # ========================================================
 # 🌐 CORS CONFIG (Dinámico desde settings)
 # ========================================================
 # Intentamos obtener la lista desde settings, si no existe, permitimos todo (dev mode)
 origins = getattr(settings, "BACKEND_CORS_ORIGINS", ["*"])
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins, 

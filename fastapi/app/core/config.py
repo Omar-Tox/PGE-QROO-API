@@ -11,10 +11,15 @@ class Settings(BaseSettings):
     DB_USERNAME: str
     DB_PASSWORD: str
 
-    # 📌 NUEVO: Configuración de CORS
+    #Configuración de CORS
     # Definimos que es una lista de URLs
     BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = []
-    LARAVEL_LOGIN_URL: str    
+    
+      # Integraciones
+    LARAVEL_LOGIN_URL: str
+    
+    # 📌 NUEVO: API Key de Google Gemini
+    GEMINI_API_KEY: str  
     # Validador: Convierte el string del .env a una lista real de Python
     @field_validator("BACKEND_CORS_ORIGINS", mode="before")
     @classmethod
