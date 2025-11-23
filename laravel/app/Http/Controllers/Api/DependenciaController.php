@@ -21,7 +21,7 @@ class DependenciaController extends Controller
         $user = $request->user();
 
         $dependencias = $user->dependencias()
-                        ->with('edificios')
+                        ->with('edificios', 'sector')
                         ->withCount('edificios')
                         ->get();
 
@@ -58,7 +58,7 @@ class DependenciaController extends Controller
         $this->authorize('ver-dependencia', $dependencia);
 
         // Si pasa la autorización, mostrarlas
-        $dependencia->load('edificios', 'presupuestos')
+        $dependencia->load('edificios', 'presupuestos', 'sector')
                     ->loadCount('edificios');
 
         return response()->json($dependencia);
