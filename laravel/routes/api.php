@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\ConsumoController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\ComparativaController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\IntegracionController;
 
 
 //----- RUTAS DEL SISTEMA -----
@@ -65,4 +66,9 @@ Route::middleware('auth:sanctum')->group(function () {
      * Rutas Gestión de usuarios
      */
     Route::apiResource('usuarios', UserController::class);
+
+    /**
+     * Rutas para integración con Nucleo Digital
+     */
+    Route::get('integracion/gobierno',[IntegracionController::class, 'index']);
 });

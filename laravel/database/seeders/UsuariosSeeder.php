@@ -34,7 +34,7 @@ class UsuariosSeeder extends Seeder
             'nombre' => 'Juan',
             'apellido' => 'Pérez',
             'email' => 'admin@pgeqroo.com',
-            'contrasena' => 'password123', // El modelo lo hasheará
+            'contrasena' => 'password123',
             'activo' => true,
         ]);
 

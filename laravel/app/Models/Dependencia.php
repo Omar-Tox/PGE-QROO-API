@@ -20,6 +20,10 @@ class Dependencia extends Model
         return $this->belongsTo(Sector::class, 'sector_id', 'id_sector');
     }
 
+    // public function sectorMany() {
+    //     return $this->hasMany(sector::class, 'sector_id', 'id_sector');
+    // }
+
     public function edificios () {
         return $this->hasMany(Edificio::class, 'dependencia_id', 'id_dependencia');
     }
