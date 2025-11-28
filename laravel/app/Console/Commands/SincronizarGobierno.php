@@ -29,11 +29,12 @@ class SincronizarGobierno extends Command
      */
     public function handle(NucleoDigitalService $service)
     {
-        $this->info('Iniciando la sincronización de datos');
+        $this->info('Iniciando la sincronización de datos...');
 
-        $data = $service->obtenerDatos();
+        // 1. Obtener datos del servicio
+        $datos = $service->obtenerDatos();
 
-        if(!$data) {
+        if (!$datos) {
             $this->error('Fallo al conectar con la API externa. Revisa los logs.');
             return;
         }
@@ -41,48 +42,66 @@ class SincronizarGobierno extends Command
         DB::beginTransaction();
 
         try {
-            // Sincronizar sectores
+            /**
+             * Sincronizar sectores
+             */
             $this->info('Sincronizando sectores...');
-            $mapaSectores = [];
             
-            foreach($data['sectores'] as $sectorExterno) {
-                // Usamos updateOrCreate para no duplicar
-                $sector = Sector::updateOrCreate(
-                    ['nombre_sector' => $sectorExterno['nombre_sector']],
-                    ['descripcion' => $sectorExterno['descripcion']]
+            foreach($datos['sectores'] as $sectorExterno) {
+                Sector::updateOrCreate(
+                    ['nombre_sector' => $sectorExterno['nombre_sector']], // Busca por nombre
+                    ['descripcion' => $sectorExterno['descripcion']]      // Actualiza descripción
                 );
             }
-            $this->info('Sectores sincronizados: '. count($data['sectores']));
+            $this->info('Sectores sincronizados: '. count($datos['sectores']));
 
-            //Sincronizar dependencias
-            $this->info('Sincronizando sectores...');
+            /**
+             * Sincronizar dependencias
+             */
+            $this->info('Sincronizando Dependencias...');
             $contadorDeps = 0;
 
-            
-            foreach($data['dependencias'] as $depExterna) {
-                // IMPORTANTE: La API externa NO nos dice a qué sector pertenece cada dependencia.
-                // Tendremos que dejarlo en null o asignar uno por defecto (ej. "Administración Pública").
-                // O intentar adivinar por el nombre, pero es arriesgado.
-                    
-                // Por ahora, asignamos al sector "Administración Publica" (ID 5 en tu JSON) si existe, o null.
-                $sectorDefault = Sector::where('nombre_sector', 'Administración Pública')->first();
+            // Buscamos el sector por defecto "Administración Publica"
+            // (Asegúrate de que este nombre exista en tu Seeder de Sectores o en la API)
+            $sectorDefault = Sector::where('nombre_sector', 'Administración Publica')->first();
+            $idSectorDefault = $sectorDefault ? $sectorDefault->id_sector : null;
 
-                Dependencia::updateOrCreate(
-                    ['nombre_dependencia' => $depExterna['nombre_dependencia']],
-                    [
-                        'sector_id' => $sectorDefault ? $sectorDefault->id_sector : null,
-                    ]
-                );
+            foreach ($datos['dependencias'] as $depExterna) {
+                
+                // Buscamos coincidencia por nombre o acrónimo (si existe)
+                // Usamos ILIKE para que no importen mayúsculas/minúsculas en Postgres
+                $dependencia = Dependencia::query()
+                    ->where('nombre_dependencia', 'ILIKE', '%' . $depExterna['nombre_dependencia'] . '%')
+                    ->orWhere(function($query) use ($depExterna) {
+                        if (!empty($depExterna['acronimo'])) {
+                            $query->where('nombre_dependencia', 'ILIKE', '%' . $depExterna['acronimo'] . '%');
+                        }
+                    })
+                    ->first();
+
+                // Si no existe, preparamos una nueva instancia
+                if (!$dependencia) {
+                    $dependencia = new Dependencia();
+                    $dependencia->nombre_dependencia = $depExterna['nombre_dependencia'];
+                    
+                    // Solo asignamos el sector por defecto a las NUEVAS
+                    // para no sobrescribir las que definiste manualmente en los Seeders
+                    $dependencia->sector_id = $idSectorDefault;
+                }
+
+                // Aquí podrías actualizar campos adicionales si tu tabla los tuviera
+                // Ej: $dependencia->titular = $depExterna['titular'];
+                
+                $dependencia->save();
                 $contadorDeps++;
-                $this->info("¡Éxito! Se sincronizaron $contadorDeps dependencias.");
             }
 
             DB::commit();
+            $this->info("Se sincronizaron $contadorDeps dependencias.");
 
         } catch (\Exception $e) {
             DB::rollBack();
             $this->error('Error durante la sincronización: ' . $e->getMessage());
-
         }
     }
 }

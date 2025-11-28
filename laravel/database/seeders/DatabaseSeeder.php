@@ -18,9 +18,13 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             PermisosSeeder::class,
+            SectoresSeeder::class,
             DependenciasSeeder::class,
+            EdificiosSeeder::class,
             RolesSeeder::class,
             UsuariosSeeder::class,
+            PresupuestosSeeder::class,
+            ConsumoHistoricoSeeder::class,
         ]);
     }
 }

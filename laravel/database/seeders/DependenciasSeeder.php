@@ -1,43 +1,35 @@
 <?php
-
 namespace Database\Seeders;
-
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-use App\Models\Dependencia;
 
 class DependenciasSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        DB::statement('TRUNCATE TABLE dependencias CASCADE');
+        DB::statement('TRUNCATE TABLE dependencias RESTART IDENTITY CASCADE');
 
-        // 1. Dependencia Global (ID 1) - LA MÁS IMPORTANTE
-        Dependencia::create([
-            'id_dependencia' => 1,
-            'nombre_dependencia' => 'Sistema PGE-QROO (Global)',
-            'sector_id' => null, // O crea un Sector "Administración" si lo prefieres
-        ]);
+        // IMPORTANTE: Definimos manualmente los IDs para que coincidan con EdificiosSeeder
+        $dependencias = [
+            ['id_dependencia' => 1, 'nombre_dependencia' => 'Sistema PGE-QROO (Global)', 'sector_id' => 5],
+            // Usamos nombres lo más parecidos posible a la API para que el comando haga match luego
+            ['id_dependencia' => 2, 'nombre_dependencia' => 'Secretaría de Educación de Quintana Roo (SEQ)', 'sector_id' => 1], // La API la llama parecido
+            ['id_dependencia' => 3, 'nombre_dependencia' => 'Universidad de Quintana Roo (UQROO)', 'sector_id' => 1],
+            ['id_dependencia' => 4, 'nombre_dependencia' => 'Secretaría de Salud de Quintana Roo (SESA)', 'sector_id' => 2],
+            ['id_dependencia' => 5, 'nombre_dependencia' => 'Comisión de Agua Potable y Alcantarillado (CAPA)', 'sector_id' => 3],
+            ['id_dependencia' => 6, 'nombre_dependencia' => 'Secretaría de Obras Públicas (SEOP)', 'sector_id' => 4],
+            ['id_dependencia' => 7, 'nombre_dependencia' => 'Secretaría de Finanzas y Planeación (SEFIPLAN)', 'sector_id' => 5],
+            ['id_dependencia' => 8, 'nombre_dependencia' => 'Colegio de Bachilleres del Estado de Q. Roo (COBAQROO)', 'sector_id' => 1],
+            ['id_dependencia' => 9, 'nombre_dependencia' => 'Secretaría de Medio Ambiente (SEMA)', 'sector_id' => 3],
+            ['id_dependencia' => 10, 'nombre_dependencia' => 'Instituto de Infraestructura Física Educativa (IFEQROO)', 'sector_id' => 4],
+            ['id_dependencia' => 11, 'nombre_dependencia' => 'Servicios Estatales de Salud Mental (SESA-Mental)', 'sector_id' => 2],
+        ];
 
-        // 2. Dependencia de Prueba (ID 2)
-        Dependencia::create([
-            'id_dependencia' => 2,
-            'nombre_dependencia' => 'Secretaría de Finanzas',
-            'sector_id' => null,
-        ]);
+        foreach ($dependencias as $dep) {
+            DB::table('dependencias')->insert($dep);
+        }
         
-        // 3. Otra dependencia de prueba (ID 3)
-        Dependencia::create([
-            'id_dependencia' => 3,
-            'nombre_dependencia' => 'Secretaría de Educación',
-            'sector_id' => null,
-        ]);
-
-        // Reiniciamos la secuencia para que la próxima dependencia creada sea la 4
-        // (Sintaxis de PostgreSQL)
-        DB::statement("SELECT setval(pg_get_serial_sequence('dependencias', 'id_dependencia'), (SELECT MAX(id_dependencia) FROM dependencias))");
+        // Ajustamos la secuencia para que la próxima dependencia creada (por la API) sea la 12
+        DB::statement("SELECT setval('dependencias_id_dependencia_seq', (SELECT MAX(id_dependencia) FROM dependencias))");
     }
 }
