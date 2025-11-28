@@ -9,11 +9,10 @@ class DependenciasSeeder extends Seeder
     {
         DB::statement('TRUNCATE TABLE dependencias RESTART IDENTITY CASCADE');
 
-        // IMPORTANTE: Definimos manualmente los IDs para que coincidan con EdificiosSeeder
+        
         $dependencias = [
             ['id_dependencia' => 1, 'nombre_dependencia' => 'Sistema PGE-QROO (Global)', 'sector_id' => 5],
-            // Usamos nombres lo más parecidos posible a la API para que el comando haga match luego
-            ['id_dependencia' => 2, 'nombre_dependencia' => 'Secretaría de Educación de Quintana Roo (SEQ)', 'sector_id' => 1], // La API la llama parecido
+            ['id_dependencia' => 2, 'nombre_dependencia' => 'Secretaría de Educación de Quintana Roo (SEQ)', 'sector_id' => 1],
             ['id_dependencia' => 3, 'nombre_dependencia' => 'Universidad de Quintana Roo (UQROO)', 'sector_id' => 1],
             ['id_dependencia' => 4, 'nombre_dependencia' => 'Secretaría de Salud de Quintana Roo (SESA)', 'sector_id' => 2],
             ['id_dependencia' => 5, 'nombre_dependencia' => 'Comisión de Agua Potable y Alcantarillado (CAPA)', 'sector_id' => 3],
@@ -29,7 +28,6 @@ class DependenciasSeeder extends Seeder
             DB::table('dependencias')->insert($dep);
         }
         
-        // Ajustamos la secuencia para que la próxima dependencia creada (por la API) sea la 12
         DB::statement("SELECT setval('dependencias_id_dependencia_seq', (SELECT MAX(id_dependencia) FROM dependencias))");
     }
 }

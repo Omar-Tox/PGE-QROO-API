@@ -11,7 +11,6 @@ class EdificiosSeeder extends Seeder
     {
         DB::statement('TRUNCATE TABLE edificio RESTART IDENTITY CASCADE');
 
-        // Nota: IDs de dependencia ajustados según el seeder anterior (SEQ es ID 2)
         DB::table('edificio')->insert([
             ['dependencia_id' => 2, 'nombre_edificio' => 'Edificio Central SEQ', 'direccion' => 'Av. Insurgentes 123', 'latitud' => 18.500000, 'longitud' => -88.300000, 'caracteristicas' => 'Oficinas administrativas'],
             ['dependencia_id' => 3, 'nombre_edificio' => 'Campus Chetumal UQROO', 'direccion' => 'Blvd. Bahía s/n', 'latitud' => 18.505000, 'longitud' => -88.285000, 'caracteristicas' => 'Campus principal'],

@@ -68,8 +68,6 @@ class SincronizarGobierno extends Command
 
             foreach ($datos['dependencias'] as $depExterna) {
                 
-                // Buscamos coincidencia por nombre o acrónimo (si existe)
-                // Usamos ILIKE para que no importen mayúsculas/minúsculas en Postgres
                 $dependencia = Dependencia::query()
                     ->where('nombre_dependencia', 'ILIKE', '%' . $depExterna['nombre_dependencia'] . '%')
                     ->orWhere(function($query) use ($depExterna) {

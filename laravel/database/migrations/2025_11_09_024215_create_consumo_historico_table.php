@@ -21,8 +21,6 @@ return new class extends Migration {
             $table->decimal('costo_total', 18, 2);
             $table->string('fuente_dato', 100)->nullable();
             $table->timestamp('fecha_registro')->useCurrent();
-
-            $table->unique(['edificio_id', 'año', 'mes']);
         });
     }
     
