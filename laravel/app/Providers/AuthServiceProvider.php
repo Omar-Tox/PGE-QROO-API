@@ -91,6 +91,14 @@ class AuthServiceProvider extends ServiceProvider
             return $user->hasPermissionFor('crear_edificios', $dependencia);
         });
 
+        Gate::define('actualizar-edificio', function(User $user, Edificio $edificio) {
+            return $user->hasPermissionFor('crear_edificios', $edificio->dependencia);
+        });
+
+        Gate::define('eliminar-edificio', function(User $user, Edificio $edificio) {
+            return $user->hasPermissionFor('crear_edificios', $edificio->dependencia);
+        });
+
         // Gate de cargar consumo
         
         Gate::define('cargar-consumos', function(User $user){

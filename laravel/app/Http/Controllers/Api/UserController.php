@@ -24,7 +24,7 @@ class UserController extends Controller
         // Devolver usuarios con sus roles y dependencias cargados
         $user = User::with(['roles', 'dependencias'])->get();
 
-        return response()->json([$user]);
+        return response()->json($user);
     }
 
     /**

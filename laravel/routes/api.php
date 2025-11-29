@@ -11,6 +11,8 @@ use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\ComparativaController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\IntegracionController;
+use App\Http\Controllers\Api\SectorController;
+use App\Http\Controllers\Api\RolController;
 
 
 //----- RUTAS DEL SISTEMA -----
@@ -42,10 +44,14 @@ Route::middleware('auth:sanctum')->group(function () {
      */
     Route::get('/dependencias/{dependencia}/edificios', [EdificioController::class, 'index']);
     Route::post('/dependencias/{dependencia}/edificios', [EdificioController::class, 'store']);
+    Route::put('/edificios/{edificio}', [EdificioController::class, 'update']);
+    Route::delete('/edificios/{edificio}', [EdificioController::class, 'destroy']);
 
     Route::get('/dependencias/{dependencia}/presupuestos', [PresupuestoController::class, 'index']);
     Route::post('/dependencias/{dependencia}/presupuestos', [PresupuestoController::class, 'store']);
 
+    Route::get('/sectores', [SectorController::class, 'index']);
+    Route::get('/roles', [RolController::class, 'index']);
     /**
      * Rutas para la importación de datos mediante el csv
      */

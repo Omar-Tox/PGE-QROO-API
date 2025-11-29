@@ -51,26 +51,34 @@ class EdificioController extends Controller
     }
 
     /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Edificio $edificio)
     {
-        //
+        $this->authorize('actualizar-edificio', $edificio);
+
+        $validatedData = $request->validate([
+            'nombre_edificio' => 'sometimes|required|string|max:255',
+            'direccion' => 'nullable|string|max:500',
+            'latitud' => 'nullable|numeric|between:-90,90',
+            'longitud' => 'nullable|numeric|between:-180,180',
+            'caracteristicas' => 'nullable|string',
+        ]);
+
+        $edificio->update($validatedData);
+        return response()->json($edificio);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Edificio $edificio)
     {
-        //
+        $this->authorize('eliminar-edificio', $edificio);
+        $edificio->delete();
+        return response()->json([
+            'message' => 'Edificio eliminado'
+        ]);
+
     }
 }
