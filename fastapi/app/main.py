@@ -30,7 +30,12 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 # 🌐 CORS CONFIG (Dinámico desde settings)
 # ========================================================
 # Intentamos obtener la lista desde settings, si no existe, permitimos todo (dev mode)
-origins = getattr(settings, "BACKEND_CORS_ORIGINS", ["*"])
+origins = [
+    "http://localhost:5173",      # Tu URL exacta del navegador
+    "http://127.0.0.1:5173",      # La variante IP
+    "http://localhost:8001",      # El propio backend (docs)
+    "*"                           # COMODÍN (Úsalo solo si lo anterior falla)
+]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins, 

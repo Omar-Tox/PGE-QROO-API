@@ -1,7 +1,6 @@
 # ============================================================
 #  app/services/prediccion_service.py
-#  FASE A: Motor Matemático (Regresión Lineal Multi-Horizonte)
-#  MEJORADO: Rango de Precios (Margen de Error) + Filtro de Historial
+#  FASE A MEJORADA: Regresión Lineal + Estacionalidad Reciente + Factor de Caos
 # ============================================================
 
 import numpy as np
@@ -45,119 +44,171 @@ def _obtener_datos_historicos_agregados(db: Session, ids_edificios: List[int]) -
         
     return df
 
+def _calcular_indices_estacionales_ponderados(df: pd.DataFrame, modelo_tendencia, col_valor="total_kwh") -> Dict[int, float]:
+    """
+    Calcula la estacionalidad basándose estrictamente en los datos proporcionados.
+    """
+    X = df[["indice_tiempo"]].values
+    tendencia_pura = modelo_tendencia.predict(X)
+    
+    df = df.copy()
+    # Evitamos división por cero
+    df["ratio_estacional"] = df[col_valor] / (tendencia_pura + 0.0001)
+    
+    # Agrupamos por mes. Si hay pocos datos (ej. solo 1 enero), ese será el índice.
+    # Si hay varios años, saca el promedio.
+    indices_mensuales = df.groupby("mes")["ratio_estacional"].mean().to_dict()
+    
+    return indices_mensuales
+
 def calcular_proyeccion_matematica(
     db: Session, 
     ids_edificios: List[int], 
     meses_a_proyectar: int = 6,
-    solo_anio_actual: bool = False # 📌 NUEVO PARÁMETRO
+    solo_anio_actual: bool = False 
 ) -> Dict[str, Any]:
     """
-    Realiza una Regresión Lineal para predecir N meses a futuro.
-    Incluye cálculo de margen de error (Rango de Precios).
+    Predicción Adaptativa:
+    - Si solo_anio_actual=True: Entrena SOLO con la historia reciente (más volátil y realista a corto plazo).
+    - Si solo_anio_actual=False: Entrena con todo el historial (más estable y suavizado).
     """
-    df = _obtener_datos_historicos_agregados(db, ids_edificios)
+    df_total = _obtener_datos_historicos_agregados(db, ids_edificios)
 
-    if len(df) < 3:
+    if len(df_total) < 3:
         return {
             "status": "error",
-            "mensaje": "Insuficientes datos históricos para predecir (se requieren mínimo 3 meses)."
+            "mensaje": "Insuficientes datos históricos para predecir."
         }
 
-    # --- ENTRENAMIENTO DEL MODELO ---
-    X = df[["indice_tiempo"]].values 
-    y_kwh = df["total_kwh"].values
-    y_costo = df["total_costo"].values
+    # --- 1. SELECCIÓN DE DATOS DE ENTRENAMIENTO (ADAPTABILIDAD) ---
+    # Aquí decidimos qué "memoria" usar para el modelo
+    if solo_anio_actual:
+        # Si el usuario quiere ver "lo actual", usamos máximo los últimos 24 meses para entrenar.
+        # Esto captura la tendencia "de moda" y la volatilidad reciente.
+        window_size = 24
+        if len(df_total) > window_size:
+            df_entrenamiento = df_total.tail(window_size).copy()
+        else:
+            df_entrenamiento = df_total.copy()
+    else:
+        # Si quiere ver todo, usamos toda la historia (tendencia a largo plazo)
+        df_entrenamiento = df_total.copy()
+
+    # --- 2. ENTRENAMIENTO (TENDENCIA) ---
+    X_train = df_entrenamiento[["indice_tiempo"]].values 
+    y_kwh_train = df_entrenamiento["total_kwh"].values
+    y_costo_train = df_entrenamiento["total_costo"].values
 
     modelo_kwh = LinearRegression()
-    modelo_kwh.fit(X, y_kwh)
+    modelo_kwh.fit(X_train, y_kwh_train)
     
     modelo_costo = LinearRegression()
-    modelo_costo.fit(X, y_costo)
+    modelo_costo.fit(X_train, y_costo_train)
 
-    # --- CÁLCULO DE MARGEN DE ERROR (NUEVO) ---
-    # Calculamos la desviación estándar de los residuos (Realidad - Predicción del modelo)
-    # Esto nos dice qué tanto suele equivocarse el modelo en pesos ($)
-    predicciones_historicas_costo = modelo_costo.predict(X)
-    residuos_costo = y_costo - predicciones_historicas_costo
-    desviacion_estandar_costo = np.std(residuos_costo)
-    
-    # Usamos un multiplicador (ej. 1.96 para 95% confianza, o 1.0 para rango estándar)
-    margen_error_costo = desviacion_estandar_costo
+    # --- 3. ESTACIONALIDAD Y VOLATILIDAD ---
+    indices_kwh = _calcular_indices_estacionales_ponderados(df_entrenamiento, modelo_kwh, "total_kwh")
+    indices_costo = _calcular_indices_estacionales_ponderados(df_entrenamiento, modelo_costo, "total_costo")
 
-    # Calidad y Tendencia
-    score_r2 = modelo_kwh.score(X, y_kwh)
+    # Calcular desviación estándar (Ruido) sobre los datos de entrenamiento
+    pred_ajustada_kwh = modelo_kwh.predict(X_train) * [indices_kwh.get(m, 1.0) for m in df_entrenamiento["mes"]]
+    residuos_kwh = y_kwh_train - pred_ajustada_kwh
+    desviacion_kwh = np.std(residuos_kwh)
+
+    pred_ajustada_costo = modelo_costo.predict(X_train) * [indices_costo.get(m, 1.0) for m in df_entrenamiento["mes"]]
+    residuos_costo = y_costo_train - pred_ajustada_costo
+    desviacion_costo = np.std(residuos_costo)
+
+    # Métricas
+    score_r2 = modelo_kwh.score(X_train, y_kwh_train)
     pendiente = modelo_kwh.coef_[0]
+    
     estado_tendencia = "Estable"
     if pendiente > 50: estado_tendencia = "Creciente 📈"
     elif pendiente < -50: estado_tendencia = "Decreciente 📉"
 
-    # --- GENERACIÓN DE FUTURO ---
-    ultimo_indice = df["indice_tiempo"].iloc[-1]
-    ultimo_anio = int(df["anio"].iloc[-1])
-    ultimo_mes = int(df["mes"].iloc[-1])
+    # --- 4. GENERACIÓN DE FUTURO ---
+    # Usamos el último índice REAL del dataset total para continuar la línea de tiempo correctamente
+    ultimo_indice = df_total["indice_tiempo"].iloc[-1]
+    ultimo_anio = int(df_total["anio"].iloc[-1])
+    ultimo_mes = int(df_total["mes"].iloc[-1])
     
     proyecciones = []
     
-    # --- FILTRADO DE HISTORIAL PARA RESPUESTA ---
-    # Si el usuario solo quiere ver el año actual, filtramos el DataFrame ANTES de convertirlo a dict
-    df_respuesta = df.copy()
+    # Preparamos datos para la gráfica (Respuesta Visual)
+    # Si pidió solo año actual, recortamos lo que enviamos al frontend
+    df_visual = df_total.copy()
     if solo_anio_actual:
-        anio_actual = datetime.now().year
-        # Si no hay datos de este año (ej. estamos en enero), mostramos al menos el año anterior
-        if not df_respuesta[df_respuesta["anio"] == anio_actual].empty:
-            df_respuesta = df_respuesta[df_respuesta["anio"] == anio_actual]
+        anio_hoy = datetime.now().year
+        # Intentamos mostrar desde enero del año actual, si no hay, mostramos los ultimos 12 meses
+        mask_anio = df_visual["anio"] == anio_hoy
+        if not df_visual[mask_anio].empty:
+            df_visual = df_visual[mask_anio]
         else:
-            # Fallback: Mostrar últimos 12 meses si el año actual está vacío
-            df_respuesta = df_respuesta.tail(12)
-
-    datos_grafica = df_respuesta[["anio", "mes", "total_kwh", "total_costo"]].to_dict(orient="records")
-    
+            df_visual = df_visual.tail(12)
+            
+    datos_grafica = df_visual[["anio", "mes", "total_kwh", "total_costo"]].to_dict(orient="records")
     for d in datos_grafica:
         d["tipo"] = "real"
 
     # Bucle de Proyección
-    anio_actual_loop = ultimo_anio
-    mes_actual_loop = ultimo_mes
+    anio_loop = ultimo_anio
+    mes_loop = ultimo_mes
 
     acumulado_kwh = 0
     acumulado_costo = 0
+    
+    # Semilla fija para consistencia visual entre recargas, 
+    # pero basada en el ID del edificio para que varíe entre edificios si se desea (opcional),
+    # aquí usamos fija para estabilidad.
+    np.random.seed(42)
 
     for i in range(1, meses_a_proyectar + 1):
-        mes_actual_loop += 1
-        if mes_actual_loop > 12:
-            mes_actual_loop = 1
-            anio_actual_loop += 1
+        mes_loop += 1
+        if mes_loop > 12:
+            mes_loop = 1
+            anio_loop += 1
         
+        # A. Base Lineal (Usando el modelo entrenado recientemente)
         indice_futuro = np.array([[ultimo_indice + i]])
-        pred_kwh = max(0, modelo_kwh.predict(indice_futuro)[0])
-        pred_costo = max(0, modelo_costo.predict(indice_futuro)[0])
+        base_kwh = modelo_kwh.predict(indice_futuro)[0]
+        base_costo = modelo_costo.predict(indice_futuro)[0]
+        
+        # B. Factor Estacional
+        # Si no tenemos datos para ese mes en el set de entrenamiento (ej. set muy corto), usamos 1.0
+        factor_kwh = indices_kwh.get(mes_loop, 1.0)
+        factor_costo = indices_costo.get(mes_loop, 1.0)
+        
+        # C. Factor de Caos (Realismo)
+        # Usamos la desviación estándar calculada. 
+        # Si el historial reciente es caótico, la predicción será caótica.
+        ruido_kwh = np.random.normal(0, desviacion_kwh) 
+        ruido_costo = np.random.normal(0, desviacion_costo)
+
+        final_kwh = max(0, (base_kwh * factor_kwh) + ruido_kwh)
+        final_costo = max(0, (base_costo * factor_costo) + ruido_costo)
         
         item = {
-            "anio": anio_actual_loop,
-            "mes": mes_actual_loop,
-            "total_kwh": round(pred_kwh, 2),
-            "total_costo": round(pred_costo, 2),
+            "anio": anio_loop,
+            "mes": mes_loop,
+            "total_kwh": round(final_kwh, 2),
+            "total_costo": round(final_costo, 2),
             "tipo": "prediccion",
-            # Agregamos el rango al objeto de gráfica para pintar "bandas" si el frontend lo soporta
-            "rango_costo_min": max(0, round(pred_costo - margen_error_costo, 2)),
-            "rango_costo_max": round(pred_costo + margen_error_costo, 2)
+            "rango_costo_min": max(0, round(final_costo - desviacion_costo, 2)),
+            "rango_costo_max": round(final_costo + desviacion_costo, 2)
         }
         
         proyecciones.append(item)
         datos_grafica.append(item)
         
-        acumulado_kwh += pred_kwh
-        acumulado_costo += pred_costo
+        acumulado_kwh += final_kwh
+        acumulado_costo += final_costo
 
-    # Valores totales proyectados con rango
     costo_proyectado_total = round(acumulado_costo, 2)
-    rango_min_total = max(0, round(costo_proyectado_total - (margen_error_costo * meses_a_proyectar), 2)) # Margen acumulado simple
-    rango_max_total = round(costo_proyectado_total + (margen_error_costo * meses_a_proyectar), 2)
-
+    
     return {
         "status": "success",
-        "metodo": f"Regresión Lineal (Proyección {meses_a_proyectar} meses)",
-        "datos_analizados": len(df), # Total real usado para el cálculo
+        "metodo": f"Regresión Adaptativa ({'Datos Recientes' if solo_anio_actual else 'Historial Completo'})",
+        "datos_analizados": len(df_entrenamiento), # Mostramos cuántos datos REALMENTE usó el modelo
         "confiabilidad_matematica": round(score_r2, 4),
         "resumen_proyeccion": {
             "horizonte_meses": meses_a_proyectar,
@@ -165,12 +216,10 @@ def calcular_proyeccion_matematica(
             "factor_crecimiento_mensual": round(pendiente, 2),
             "suma_total_kwh_proyectada": round(acumulado_kwh, 2),
             "suma_total_costo_proyectada": costo_proyectado_total,
-            
-            # 📌 NUEVO: Rango de Precios Aproximado
             "rango_precios_estimado": {
-                "minimo": rango_min_total,
-                "maximo": rango_max_total,
-                "margen_error_promedio_mensual": round(margen_error_costo, 2)
+                "minimo": max(0, round(costo_proyectado_total - (desviacion_costo * meses_a_proyectar), 2)),
+                "maximo": round(costo_proyectado_total + (desviacion_costo * meses_a_proyectar), 2),
+                "margen_error_promedio_mensual": round(desviacion_costo, 2)
             }
         },
         "detalle_proyeccion": proyecciones,

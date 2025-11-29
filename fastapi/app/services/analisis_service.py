@@ -664,6 +664,65 @@ def obtener_nombre_dependencia(db: Session, id_dependencia: int) -> str:
     stmt = select(Dependencia.nombre_dependencia).where(Dependencia.id_dependencia == id_dependencia)
     nombre = db.execute(stmt).scalar()
     return nombre if nombre else "Desconocida"
+
+
+
+
+# ============================================================
+#  RECURSOS DEL USUARIO (Estructura para Filtros)
+# ============================================================
+
+def obtener_estructura_recursos_usuario(db: Session, user_id: int) -> Dict:
+    """
+    Retorna la jerarquía Dependencias -> Edificios a las que el usuario tiene acceso.
+    Útil para poblar selectores/filtros en el frontend.
+    """
+    # Consulta: Unimos Dependencia con Edificio, filtrando por la tabla pivote del usuario
+    stmt = (
+        select(
+            Dependencia.id_dependencia,
+            Dependencia.nombre_dependencia,
+            Edificio.id_edificio,
+            Edificio.nombre_edificio
+        )
+        .select_from(usuario_dependencia_roles)
+        .join(Dependencia, Dependencia.id_dependencia == usuario_dependencia_roles.c.dependencia_id)
+        .join(Edificio, Edificio.dependencia_id == Dependencia.id_dependencia)
+        .where(usuario_dependencia_roles.c.usuario_id == user_id)
+        .order_by(Dependencia.nombre_dependencia, Edificio.nombre_edificio)
+    )
+    
+    resultados = db.execute(stmt).all()
+
+    # Estructurar en Árbol (Diccionario temporal)
+    # Clave: ID Dependencia -> Valor: {info_dep, lista_edificios}
+    arbol_deps = {}
+
+    for row in resultados:
+        dep_id = row.id_dependencia
+        
+        if dep_id not in arbol_deps:
+            arbol_deps[dep_id] = {
+                "id": dep_id,
+                "nombre": row.nombre_dependencia,
+                "edificios": []
+            }
+        
+        # Agregar edificio a su dependencia padre
+        arbol_deps[dep_id]["edificios"].append({
+            "id": row.id_edificio,
+            "nombre": row.nombre_edificio
+        })
+
+    # Convertir diccionario a lista para la respuesta JSON
+    lista_final = list(arbol_deps.values())
+
+    return {
+        "usuario_id": user_id,
+        "dependencias": lista_final
+    }
+
+
 # # ============================================================
 # #  app/services/analisis_service.py
 # #  Versión Final: Soporte para filtrado por dependencia en dashboard privado

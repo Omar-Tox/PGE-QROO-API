@@ -1,142 +1,109 @@
 # ============================================================
-#  app/routers/analisis_publico.py
-#  Router inteligente para vistas públicas y comparativas
-#  MEJORADO: Documentación detallada para Swagger UI
+#  app/routers/analisis.py
+#  Endpoints PRIVADOS Consolidados + Filtro Opcional
+#  Incluye: KPIs, Gráficas y Estructura de Recursos
 # ============================================================
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.orm import Session
-from typing import List
+from typing import Optional
 
 from app.db.connection import get_session
 from app.services import analisis_service as service
-from app.schemas.analisis_schemas import RespuestaComparativa
+from app.core.security import get_current_user
+from app.db.models import User
+from app.schemas.analisis_schemas import (
+    DashboardKpisResponse, 
+    DashboardEvolucionResponse, 
+    DashboardTendenciaResponse, 
+    DashboardRankingResponse,
+    MisRecursosResponse 
+)
 
 router = APIRouter(
-    prefix="/analisis/publico",
-    tags=["Análisis Público (Gráficas)"]
+    prefix="/analisis",
+    tags=["Dashboard Privado (Mi Dependencia)"]
 )
 
-def _parsear_ids(ids_str: str) -> List[int]:
-    """Convierte string '1,2,3' en lista [1, 2, 3]."""
-    try:
-        lista = [int(x) for x in ids_str.split(",") if x.strip()]
-        if not lista:
-            raise ValueError
-        return lista
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Formato de IDs inválido. Use '1,2,3'")
-
-# ------------------------------------------------------------------
-# 1. Comparativa de Consumo (kWh) - Líneas
-# ------------------------------------------------------------------
-@router.get(
-    "/comparativa-consumo", 
-    response_model=RespuestaComparativa,
-    summary="Comparar Consumo (kWh)",
-    description="Genera una gráfica de líneas comparando el consumo eléctrico. Si filtras por **Sector**, se sumarán todos los edificios de ese sector."
-)
-def obtener_comparativa_consumo(
-    anio: int = Query(
-        ..., 
-        title="Año de Consulta",
-        description="Año fiscal a consultar (ej. 2024)", 
-        ge=2015, 
-        le=2030,
-        example=2024
-    ),
-    ids: str = Query(
-        ..., 
-        title="IDs a Consultar",
-        description="**Escribe aquí los IDs separados por coma.** <br>Ejemplo: Si filtras por 'sector', pon el ID del sector (1). Si filtras por 'edificio', pon sus IDs (1,2,3).",
-        example="1,2"
-    ),
-    tipo_filtro: str = Query(
-        ..., 
-        title="Nivel de Agrupación",
-        description="Define qué representan los IDs que escribiste arriba.",
-        regex="^(edificio|dependencia|sector)$",
-        example="edificio"
-    ),
-    db: Session = Depends(get_session)
+# ------------------------------------------------------------
+# 1. Dashboard KPIs (Resumen Ejecutivo)
+# ------------------------------------------------------------
+@router.get("/dashboard/kpis", summary="Resumen Financiero Anual", response_model=DashboardKpisResponse)
+def dashboard_kpis(
+    anio: int = Query(..., example=2024),
+    dependencia_id: Optional[int] = Query(None, description="Opcional: Filtrar por ID de una dependencia"),
+    db: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
 ):
-    lista_ids = _parsear_ids(ids)
-    ids_finales = service.resolver_ids_por_filtro(db, tipo_filtro, lista_ids)
+    """
+    Obtiene el estado financiero real:
+    - **Gasto Real:** Suma de recibos de luz de los edificios.
+    - **Presupuesto:** Dinero asignado a la(s) dependencia(s).
+    - **Balance:** Cuánto queda (o cuánto falta).
+    """
+    ids = service.obtener_edificios_usuario(db, current_user.id_usuario, dependencia_id)
     
-    if len(ids_finales) > 20: ids_finales = ids_finales[:20]
+    # Si no hay edificios, retornamos estructura vacía pero válida
+    if not ids:
+        if dependencia_id:
+            raise HTTPException(status_code=403, detail="No tienes acceso a esta dependencia")
+        return service.kpis_anuales(db, [], anio)
 
-    return service.comparativa_consumo_mensual(db, ids_finales, anio)
+    return service.kpis_anuales(db, ids, anio)
 
-# ------------------------------------------------------------------
-# 2. Comparativa de Costos ($) - Líneas
-# ------------------------------------------------------------------
-@router.get(
-    "/comparativa-costos", 
-    response_model=RespuestaComparativa,
-    summary="Comparar Costos ($)",
-    description="Muestra el gasto monetario mensual. Útil para contrastar facturación entre dependencias."
-)
-def obtener_comparativa_costos(
-    anio: int = Query(..., title="Año", example=2024),
-    ids: str = Query(..., title="IDs", description="Lista de IDs (ej. '3,4')", example="3,4"),
-    tipo_filtro: str = Query(..., title="Filtro", regex="^(edificio|dependencia|sector)$", example="edificio"),
-    db: Session = Depends(get_session)
+
+# ------------------------------------------------------------
+# 2. Dashboard Gráfica Temporal (Evolución)
+# ------------------------------------------------------------
+@router.get("/dashboard/evolucion", summary="Gráfica Mensual", response_model=DashboardEvolucionResponse)
+def dashboard_evolucion(
+    anio: int = Query(..., example=2024),
+    dependencia_id: Optional[int] = Query(None),
+    db: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
 ):
-    lista_ids = _parsear_ids(ids)
-    ids_finales = service.resolver_ids_por_filtro(db, tipo_filtro, lista_ids)
-    
-    if len(ids_finales) > 20: ids_finales = ids_finales[:20]
+    ids = service.obtener_edificios_usuario(db, current_user.id_usuario, dependencia_id)
+    return service.evolucion_mensual_agregada(db, ids, anio)
 
-    return service.comparativa_costo_mensual(db, ids_finales, anio)
 
-# ------------------------------------------------------------------
-# 3. Ranking (Top Consumidores) - Barras
-# ------------------------------------------------------------------
-@router.get(
-    "/ranking", 
-    response_model=RespuestaComparativa,
-    summary=" Ranking de Mayor Consumo",
-    description="Obtiene el Top 10 de edificios con mayor consumo dentro del sector o dependencia seleccionada."
-)
-def obtener_ranking_publico(
-    anio: int = Query(..., title="Año", example=2024),
-    ids: str = Query(..., title="ID del Grupo", description="ID del Sector o Dependencia a analizar.", example="1"),
-    tipo_filtro: str = Query(..., title="Agrupar por", regex="^(edificio|dependencia|sector)$", example="sector"),
-    db: Session = Depends(get_session)
+# ------------------------------------------------------------
+# 3. Dashboard Tendencia (Histórico)
+# ------------------------------------------------------------
+@router.get("/dashboard/tendencia", summary="Tendencia Histórica", response_model=DashboardTendenciaResponse)
+def dashboard_tendencia(
+    window: int = Query(3, ge=1, le=12),
+    dependencia_id: Optional[int] = Query(None),
+    db: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
 ):
-    lista_ids = _parsear_ids(ids)
-    ids_finales = service.resolver_ids_por_filtro(db, tipo_filtro, lista_ids)
-    
-    return service.ranking_publico(db, ids_finales, anio)
+    ids = service.obtener_edificios_usuario(db, current_user.id_usuario, dependencia_id)
+    return service.tendencia_agregada(db, ids, window)
 
 
-# ------------------------------------------------------------------
-# 4. Presupuesto vs Gasto (Trimestral)
-# ------------------------------------------------------------------
-@router.get(
-    "/presupuesto-vs-gasto", 
-    response_model=RespuestaComparativa,
-    summary="Presupuesto vs. Gasto Real",
-    description="Analiza la ejecución presupuestal trimestral. Compara el dinero asignado vs. lo que realmente se pagó a CFE."
-)
-def obtener_presupuesto_vs_gasto(
-    anio: int = Query(..., title="Año Fiscal", example=2023),
-    ids: str = Query(..., title="IDs", description="IDs de Sectores o Dependencias.", example="1"),
-    tipo_filtro: str = Query(..., title="Filtro", regex="^(edificio|dependencia|sector)$", example="sector"),
-    db: Session = Depends(get_session)
+# ------------------------------------------------------------
+# 4. Dashboard Ranking (Mis Edificios)
+# ------------------------------------------------------------
+@router.get("/dashboard/ranking", summary="Top Consumo Interno", response_model=DashboardRankingResponse)
+def dashboard_ranking(
+    anio: int = Query(..., example=2024),
+    dependencia_id: Optional[int] = Query(None),
+    db: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
 ):
-    lista_ids = _parsear_ids(ids)
-    
-    ids_dependencias = service.resolver_ids_dependencias_por_filtro(db, tipo_filtro, lista_ids)
-    
-    if not ids_dependencias:
-         return {
-            "titulo": "No se encontraron dependencias relacionadas",
-            "eje_x": [],
-            "series": []
-        }
+    ids = service.obtener_edificios_usuario(db, current_user.id_usuario, dependencia_id)
+    return service.ranking_interno_usuario(db, ids, anio)
 
-    return service.analisis_presupuestal_trimestral(db, ids_dependencias, anio)
+
+# ------------------------------------------------------------
+# 5. Estructura de Recursos (Para Filtros)
+# ------------------------------------------------------------
+@router.get("/dashboard/mis-recursos", summary="Obtener mis Dependencias y Edificios", response_model=MisRecursosResponse)
+def obtener_mis_recursos(
+    db: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+
+    return service.obtener_estructura_recursos_usuario(db, current_user.id_usuario)
 # # ============================================================
 # #  app/routers/analisis_publico.py
 # #  Router inteligente para vistas públicas y comparativas

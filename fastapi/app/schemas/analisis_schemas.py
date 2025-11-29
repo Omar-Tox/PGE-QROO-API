@@ -178,6 +178,42 @@ class RespuestaComparativa(BaseModel):
     eje_x: List[str]
     series: List[SerieDatos]
     dependencias_involucradas: List[str] = [] # Nuevo campo con valor por defecto
+    
+    
+    
+    
+# =========================================================
+# 🆕 NUEVOS SCHEMAS: RECURSOS DEL USUARIO (Para Filtros)
+# =========================================================
+
+class EdificioSimple(BaseModel):
+    id: int
+    nombre: str
+
+class DependenciaConEdificios(BaseModel):
+    id: int
+    nombre: str
+    edificios: List[EdificioSimple]
+
+class MisRecursosResponse(BaseModel):
+    usuario_id: int
+    dependencias: List[DependenciaConEdificios]
+# =========================================================
+# 🆕 NUEVOS SCHEMAS: RECURSOS DEL USUARIO (Para Filtros)
+# =========================================================
+
+class EdificioSimple(BaseModel):
+    id: int
+    nombre: str
+
+class DependenciaConEdificios(BaseModel):
+    id: int
+    nombre: str
+    edificios: List[EdificioSimple]
+
+class MisRecursosResponse(BaseModel):
+    usuario_id: int
+    dependencias: List[DependenciaConEdificios]
 # # app/schemas/analisis_schemas.py
 
 # from pydantic import BaseModel
