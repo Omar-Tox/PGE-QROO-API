@@ -38,6 +38,12 @@ class AuthServiceProvider extends ServiceProvider
         
         // === Gates globales ===
 
+        Gate::before(function ($user, $ability) {
+            if ($user->hasGlobalPermission('crear_dependencias')) { // O el permiso que defina al Super Admin
+                return true; 
+            }
+        });
+
         Gate::define('crear-dependencia', function(User $user) {
             return $user->hasGlobalPermission('crear_dependencias');
         });

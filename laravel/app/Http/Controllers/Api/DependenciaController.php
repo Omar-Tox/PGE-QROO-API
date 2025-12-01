@@ -20,13 +20,19 @@ class DependenciaController extends Controller
     {
         $user = $request->user();
 
-        $dependencias = $user->dependencias()
+        if($user->hasGlobalPermission('crear_dependencias')) {
+            $dependencias = Dependencia::with('sector')
+                                        ->withCount('edificios')
+                                        ->get();
+
+        }
+        else {
+            $dependencias = $user->dependencias()
                         ->with('edificios', 'sector')
                         ->withCount('edificios')
                         ->get();
 
-
-
+        }
         return response()->json($dependencias);
     }
 
