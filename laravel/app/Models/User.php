@@ -11,11 +11,12 @@ use Laravel\Sanctum\HasApiTokens;
 use App\Models\Dependencia;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasApiTokens, Notifiable;
+    use HasApiTokens, Notifiable, HasFactory;
 
     protected $table = 'usuarios';
     protected $primaryKey = 'id_usuario';
