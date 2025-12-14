@@ -9,13 +9,35 @@ use App\Models\Presupuesto;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
+
 class PresupuestoController extends Controller
 {
     use AuthorizesRequests;
-    /**
-     * Muestra los presupuestos de una dependencia específica.
-     */
 
+    /**
+     * @OA\Get(
+     *     path="/api/dependencias/{dependencia}/presupuestos",
+     *     tags={"Presupuestos"},
+     *     summary="Listar presupuestos de una dependencia",
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(
+     *         name="dependencia",
+     *         in="path",
+     *         required=true,
+     *         description="ID de la dependencia",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Lista de presupuestos",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(ref="#/components/schemas/Presupuesto")
+     *         )
+     *     ),
+     *     @OA\Response(response=403, description="No autorizado")
+     * )
+     */
     public function index(Dependencia $dependencia)
     {
         // Autorizar si el usuario puede 'ver-presupuesto' de ESTA dependencia
@@ -31,7 +53,35 @@ class PresupuestoController extends Controller
     }
 
     /**
-     * Asigna un nuevo presupuesto a una dependencia.
+     * @OA\Post(
+     *     path="/api/dependencias/{dependencia}/presupuestos",
+     *     tags={"Presupuestos"},
+     *     summary="Asignar presupuesto a una dependencia",
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(
+     *         name="dependencia",
+     *         in="path",
+     *         required=true,
+     *         description="ID de la dependencia",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"año","trimestre","monto_asignado"},
+     *             @OA\Property(property="año", type="integer", example=2025),
+     *             @OA\Property(property="trimestre", type="integer", example=1),
+     *             @OA\Property(property="monto_asignado", type="number", format="float", example=250000.75)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Presupuesto creado",
+     *         @OA\JsonContent(ref="#/components/schemas/Presupuesto")
+     *     ),
+     *     @OA\Response(response=409, description="Presupuesto duplicado"),
+     *     @OA\Response(response=403, description="No autorizado")
+     * )
      */
     public function store(Request $request, Dependencia $dependencia)
     {

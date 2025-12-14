@@ -14,7 +14,39 @@ class EdificioController extends Controller
 
     use AuthorizesRequests;
     /**
-     * Display a listing of the resource.
+     * @OA\Get(
+     *     path="/api/dependencias/{dependencia}/edificios",
+     *     tags={"Edificios"},
+     *     summary="Listar edificios de una dependencia",
+     *     description="Devuelve todos los edificios asociados a una dependencia específica.",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(
+     *         name="dependencia",
+     *         in="path",
+     *         required=true,
+     *         description="ID de la dependencia",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Lista de edificios",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(
+     *                 @OA\Property(property="id_edificio", type="integer", example=10),
+     *                 @OA\Property(property="nombre_edificio", type="string", example="Edificio Central"),
+     *                 @OA\Property(property="direccion", type="string", example="Av. Principal 123"),
+     *                 @OA\Property(property="latitud", type="number", format="float", example=18.5001),
+     *                 @OA\Property(property="longitud", type="number", format="float", example=-88.3002)
+     *             )
+     *         )
+     *     ),
+     *
+     *     @OA\Response(response=403, description="No autorizado"),
+     *     @OA\Response(response=404, description="Dependencia no encontrada")
+     * )
      */
     public function index(Dependencia $dependencia)
     {
@@ -26,7 +58,45 @@ class EdificioController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * @OA\Post(
+     *     path="/api/dependencias/{dependencia}/edificios",
+     *     tags={"Edificios"},
+     *     summary="Crear edificio",
+     *     description="Crea un nuevo edificio dentro de una dependencia.",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(
+     *         name="dependencia",
+     *         in="path",
+     *         required=true,
+     *         description="ID de la dependencia",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"nombre_edificio"},
+     *             @OA\Property(property="nombre_edificio", type="string", example="Edificio Norte"),
+     *             @OA\Property(property="direccion", type="string", example="Calle 10 #45"),
+     *             @OA\Property(property="latitud", type="number", format="float", example=19.4326),
+     *             @OA\Property(property="longitud", type="number", format="float", example=-99.1332),
+     *             @OA\Property(property="caracteristicas", type="string", example="3 niveles, oficinas administrativas")
+     *         )
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=201,
+     *         description="Edificio creado",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="id_edificio", type="integer", example=15),
+     *             @OA\Property(property="nombre_edificio", type="string", example="Edificio Norte")
+     *         )
+     *     ),
+     *
+     *     @OA\Response(response=403, description="No autorizado"),
+     *     @OA\Response(response=422, description="Datos inválidos")
+     * )
      */
     public function store(Request $request, Dependencia $dependencia)
     {
@@ -51,7 +121,36 @@ class EdificioController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * @OA\Put(
+     *     path="/api/edificios/{edificio}",
+     *     tags={"Edificios"},
+     *     summary="Actualizar edificio",
+     *     description="Actualiza los datos de un edificio existente.",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(
+     *         name="edificio",
+     *         in="path",
+     *         required=true,
+     *         description="ID del edificio",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *
+     *     @OA\RequestBody(
+     *         @OA\JsonContent(
+     *             @OA\Property(property="nombre_edificio", type="string", example="Edificio Renovado"),
+     *             @OA\Property(property="direccion", type="string", example="Av. Reforma 100"),
+     *             @OA\Property(property="latitud", type="number", format="float"),
+     *             @OA\Property(property="longitud", type="number", format="float"),
+     *             @OA\Property(property="caracteristicas", type="string", example="Paneles solares instalados")
+     *         )
+     *     ),
+     *
+     *     @OA\Response(response=200, description="Edificio actualizado"),
+     *     @OA\Response(response=403, description="No autorizado"),
+     *     @OA\Response(response=404, description="Edificio no encontrado"),
+     *     @OA\Response(response=422, description="Datos inválidos")
+     * )
      */
     public function update(Request $request, Edificio $edificio)
     {
@@ -70,7 +169,32 @@ class EdificioController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * @OA\Delete(
+     *     path="/api/edificios/{edificio}",
+     *     tags={"Edificios"},
+     *     summary="Eliminar edificio",
+     *     description="Elimina un edificio del sistema.",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(
+     *         name="edificio",
+     *         in="path",
+     *         required=true,
+     *         description="ID del edificio",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Edificio eliminado",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Edificio eliminado")
+     *         )
+     *     ),
+     *
+     *     @OA\Response(response=403, description="No autorizado"),
+     *     @OA\Response(response=404, description="Edificio no encontrado")
+     * )
      */
     public function destroy(Edificio $edificio)
     {

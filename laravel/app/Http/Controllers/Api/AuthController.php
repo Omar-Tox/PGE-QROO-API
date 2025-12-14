@@ -12,8 +12,40 @@ use Illuminate\Validation\ValidationException;
 class AuthController extends Controller
 {
     /**
-     * handle the login request
-     */
+ * @OA\Post(
+ *     path="/api/login",
+ *     tags={"Autenticación"},
+ *     summary="Iniciar sesión",
+ *     description="Obtiene un token de acceso para el sistema.",
+ *     @OA\RequestBody(
+ *         required=true,
+ *         @OA\JsonContent(
+ *             required={"email","contrasena"},
+ *             @OA\Property(property="email", type="string", format="email", example="admin@pgeqroo.com"),
+ *             @OA\Property(property="contrasena", type="string", format="password", example="password123")
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Login exitoso",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="message", type="string", example="login exitoso"),
+ *             @OA\Property(property="access_token", type="string", example="1|AbCdEf123..."),
+ *             @OA\Property(property="token_type", type="string", example="Bearer"),
+ *             @OA\Property(property="user", ref="#/components/schemas/UserAuthResponse")
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=401,
+ *         description="Credenciales incorrectas"
+ *     ),
+ *     @OA\Response(
+ *         response=422,
+ *         description="Datos inválidos"
+ *     )
+ * )
+ */
+
     public function login (Request $request) {
         $request->validate([
             'email' => 'required|email',
@@ -58,8 +90,21 @@ class AuthController extends Controller
     }
 
     /**
-     * Handle a auth response
+     * @OA\Get(
+            * path="/api/me",
+            * tags={"Autenticación"},
+            * summary="Obtener usuario autenticado",
+            * description="Devuelve los datos del usuario logueado. Requiere Bearer Token.",
+            * security={{"sanctum": {}}},
+     * @OA\Response(
+            * response=200,
+            * description="Datos del usuario recuperados",
+     * @OA\JsonContent(ref="#/components/schemas/UserFullResponse")
+     * ),
+     * @OA\Response(response=401, description="No autenticado")
+     * )
      */
+
     public function me (Request $request) {
 
         $user = $request->user(); // El middleware 'auth:sanctum' ya nos da el $request->user()
@@ -71,7 +116,21 @@ class AuthController extends Controller
     }
 
     /**
-     * Logout function
+     * @OA\Post(
+            * path="/api/logout",
+            * tags={"Autenticación"},
+            * summary="Cerrar sesión",
+            * description="Elimina el token de acceso actual del usuario. Requiere Bearer Token.",
+            * security={{"sanctum": {}}},
+     * @OA\Response(
+            * response=200,
+            * description="Sesión cerrada correctamente",
+     * @OA\JsonContent(
+     * @OA\Property(property="message", type="string", example="Sesión cerrada correctamente")
+     * )
+     * ),
+     *  
+     * )
      */
 
     public function logout (Request $request) {

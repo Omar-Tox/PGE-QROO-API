@@ -14,7 +14,26 @@ class DependenciaController extends Controller
 {
     use AuthorizesRequests;
     /**
-     * Display a listing of the resource.
+     * @OA\Get(
+     *     path="/api/dependencias",
+     *     tags={"Dependencias"},
+     *     summary="Listar dependencias",
+     *     description="Lista dependencias visibles para el usuario autenticado.",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Listado de dependencias",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(
+     *                 @OA\Property(property="id_dependencia", type="integer", example=1),
+     *                 @OA\Property(property="nombre_dependencia", type="string", example="Secretaría de Educación"),
+     *                 @OA\Property(property="edificios_count", type="integer", example=5)
+     *             )
+     *         )
+     *     )
+     * )
      */
     public function index(Request $request)
     {
@@ -37,7 +56,25 @@ class DependenciaController extends Controller
     }
 
     /**
-     * Store a newly created dependence in storage.
+     * @OA\Post(
+     *     path="/api/dependencias",
+     *     tags={"Dependencias"},
+     *     summary="Crear dependencia",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"nombre_dependencia"},
+     *             @OA\Property(property="nombre_dependencia", type="string", example="Nueva Secretaría"),
+     *             @OA\Property(property="sector_id", type="integer", example=1)
+     *         )
+     *     ),
+     *
+     *     @OA\Response(response=201, description="Dependencia creada"),
+     *     @OA\Response(response=403, description="No autorizado"),
+     *     @OA\Response(response=422, description="Datos inválidos")
+     * )
      */
     public function store(Request $request)
     {
@@ -55,7 +92,32 @@ class DependenciaController extends Controller
     }
 
     /**
-     * Display the specified dependence.
+     * @OA\Get(
+     *     path="/api/dependencias/{dependencia}",
+     *     tags={"Dependencias"},
+     *     summary="Obtener dependencia especifica",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(
+     *         name="dependencia",
+     *         in="path",
+     *         required=true,
+     *         description="ID de la dependencia",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Detalle de la dependencia",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="id_dependencia", type="integer", example=1),
+     *             @OA\Property(property="nombre_dependencia", type="string", example="Secretaría de Educación")
+     *         )
+     *     ),
+     *
+     *     @OA\Response(response=403, description="No autorizado"),
+     *     @OA\Response(response=404, description="No encontrada")
+     * )
      */
     public function show(Dependencia $dependencia)
     {
@@ -71,7 +133,30 @@ class DependenciaController extends Controller
     }
 
     /**
-     * Update the specified dependence in storage.
+     * @OA\Put(
+     *     path="/api/dependencias/{dependencia}",
+     *     tags={"Dependencias"},
+     *     summary="Actualizar dependencia",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(
+     *         name="dependencia",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *
+     *     @OA\RequestBody(
+     *         @OA\JsonContent(
+     *             @OA\Property(property="nombre_dependencia", type="string", example="Dependencia Actualizada"),
+     *             @OA\Property(property="sector_id", type="integer", example=2)
+     *         )
+     *     ),
+     *
+     *     @OA\Response(response=200, description="Actualizada correctamente"),
+     *     @OA\Response(response=403, description="No autorizado"),
+     *     @OA\Response(response=422, description="Datos inválidos")
+     * )
      */
     public function update(Request $request, Dependencia $dependencia)
     {
@@ -89,7 +174,22 @@ class DependenciaController extends Controller
     }
 
     /**
-     * Remove the specified dependence from storage.
+     * @OA\Delete(
+     *     path="/api/dependencias/{dependencia}",
+     *     tags={"Dependencias"},
+     *     summary="Eliminar dependencia",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(
+     *         name="dependencia",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *
+     *     @OA\Response(response=200, description="Eliminada correctamente"),
+     *     @OA\Response(response=403, description="No autorizado")
+     * )
      */
     public function destroy(Dependencia $dependencia)
     {

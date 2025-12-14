@@ -125,13 +125,12 @@ class SincronizarGobierno extends Command
             }
 
             DB::commit();
-            $this->info("¡Éxito Total!");
             $this->info("- Dependencias procesadas: $contadorDeps");
             $this->info("- Usuarios titulares creados/actualizados: $contadorUsers");
 
         } catch (\Exception $e) {
             DB::rollBack();
-            $this->error('Error crítico durante la sincronización: ' . $e->getMessage());
+            $this->error('Error durante la sincronización: ' . $e->getMessage());
         }
     }
 }

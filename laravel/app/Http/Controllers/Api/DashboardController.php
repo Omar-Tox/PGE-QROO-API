@@ -14,9 +14,56 @@ use Carbon\Carbon;
 class DashboardController extends Controller
 {
     /**
-     * Obtiene los KPIs y datos para el Dashboard principal.
-     * Puede filtrar por dependencia_id si se pasa en el query param.
-     * Ejemplo: /api/dashboard?dependencia_id=2
+     * @OA\Get(
+     *     path="/api/dashboard",
+     *     tags={"Dashboard"},
+     *     summary="Datos principales del dashboard",
+     *     description="Obtiene KPIs, evolución de consumo y ranking de inmuebles. Puede filtrarse por dependencia.",
+     *     security={{"sanctum": {}}},
+     *
+     *     @OA\Parameter(
+     *         name="id_dependencia",
+     *         in="query",
+     *         required=false,
+     *         description="ID de la dependencia para filtrar los datos del dashboard",
+     *         @OA\Schema(type="integer", example=2)
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Datos del dashboard obtenidos correctamente",
+     *         @OA\JsonContent(
+     *             @OA\Property(
+     *                 property="periodo",
+     *                 type="object",
+     *                 @OA\Property(property="mes", type="integer", example=6),
+     *                 @OA\Property(property="año", type="integer", example=2025)
+     *             ),
+     *
+     *             @OA\Property(
+     *                 property="kpis",
+     *                 type="object",
+     *                 @OA\Property(property="consumo_mes_kwh", type="number", format="float", example=15432.75),
+     *                 @OA\Property(property="costo_mes", type="number", format="float", example=32145.50),
+     *                 @OA\Property(property="presupuesto_trimestre", type="number", format="float", example=500000.00)
+     *             ),
+     *
+     *             @OA\Property(
+     *                 property="data_evolucion",
+     *                 type="array",
+     *                 @OA\Items(ref="#/components/schemas/EvolucionConsumo")
+     *             ),
+     *
+     *             @OA\Property(
+     *                 property="data_inmuebles",
+     *                 type="array",
+     *                 @OA\Items(ref="#/components/schemas/InmuebleTopConsumo")
+     *             )
+     *         )
+     *     ),
+     *
+     *     @OA\Response(response=401, description="No autenticado")
+     * )
      */
     public function index(Request $request)
     {
@@ -106,37 +153,5 @@ class DashboardController extends Controller
             'data_evolucion' => $evolucion,
             'data_inmuebles' => $inmuebles
         ]);
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
     }
 }

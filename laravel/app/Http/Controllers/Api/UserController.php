@@ -14,8 +14,23 @@ class UserController extends Controller
     use AuthorizesRequests;
 
     /**
-     * Lista todos los usuarios del sistema
-     * unicamente para el superAdmin
+     * @OA\Get(
+     *     path="/api/usuarios",
+     *     tags={"Usuarios"},
+     *     summary="Listar usuarios",
+     *     description="Devuelve todos los usuarios del sistema. Solo disponible para Super Admin.",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Listado de usuarios",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(ref="#/components/schemas/Usuario")
+     *         )
+     *     ),
+     *     @OA\Response(response=403, description="No autorizado")
+     * )
      */
     public function index()
     {
@@ -28,7 +43,36 @@ class UserController extends Controller
     }
 
     /**
-     * Crear un nuevo usuario.
+     * @OA\Post(
+     *     path="/api/usuarios",
+     *     tags={"Usuarios"},
+     *     summary="Crear usuario",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"nombre_usuario","nombre","apellido","email","contrasena","asignaciones"},
+     *             @OA\Property(property="nombre_usuario", type="string", example="jperez"),
+     *             @OA\Property(property="nombre", type="string", example="Juan"),
+     *             @OA\Property(property="apellido", type="string", example="Pérez"),
+     *             @OA\Property(property="email", type="string", format="email"),
+     *             @OA\Property(property="contrasena", type="string", format="password"),
+     *             @OA\Property(
+     *                 property="asignaciones",
+     *                 type="array",
+     *                 @OA\Items(ref="#/components/schemas/AsignacionRol")
+     *             )
+     *         )
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=201,
+     *         description="Usuario creado",
+     *         @OA\JsonContent(ref="#/components/schemas/Usuario")
+     *     ),
+     *     @OA\Response(response=403, description="No autorizado")
+     * )
      */
     public function store(Request $request)
     {
@@ -71,7 +115,26 @@ class UserController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * @OA\Get(
+     *     path="/api/usuarios/{id}",
+     *     tags={"Usuarios"},
+     *     summary="Ver usuario",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Usuario encontrado",
+     *         @OA\JsonContent(ref="#/components/schemas/Usuario")
+     *     ),
+     *     @OA\Response(response=404, description="Usuario no encontrado")
+     * )
      */
     public function show(string $id)
     {
@@ -81,7 +144,39 @@ class UserController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * @OA\Put(
+     *     path="/api/usuarios/{id}",
+     *     tags={"Usuarios"},
+     *     summary="Actualizar usuario",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *
+     *     @OA\RequestBody(
+     *         @OA\JsonContent(
+     *             @OA\Property(property="nombre", type="string"),
+     *             @OA\Property(property="apellido", type="string"),
+     *             @OA\Property(property="email", type="string", format="email"),
+     *             @OA\Property(property="contrasena", type="string"),
+     *             @OA\Property(
+     *                 property="asignaciones",
+     *                 type="array",
+     *                 @OA\Items(ref="#/components/schemas/AsignacionRol")
+     *             )
+     *         )
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Usuario actualizado",
+     *         @OA\JsonContent(ref="#/components/schemas/Usuario")
+     *     )
+     * )
      */
     public function update(Request $request, string $id)
     {
@@ -127,7 +222,24 @@ class UserController extends Controller
     }
 
     /**
-     * Desactiva un usuario (Soft Delete lógico)..
+     * @OA\Delete(
+     *     path="/api/usuarios/{id}",
+     *     tags={"Usuarios"},
+     *     summary="Desactivar usuario",
+     *     security={{"sanctum":{}}},
+     *
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Usuario desactivado"
+     *     )
+     * )
      */
     public function destroy(string $id)
     {

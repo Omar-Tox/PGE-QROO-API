@@ -14,10 +14,42 @@ class IntegracionController extends Controller
     {
         $this->nucleoService = $nucleoService;
     }
-
-    /**
-     * Obtiene los datos oficiales del Gobierno.
-     */
+    /*    
+    * @OA\Get(
+    *     path="/api/integracion/gobierno",
+    *     tags={"Integración"},
+    *     summary="Obtener datos oficiales del Gobierno",
+    *     description="Consulta el servicio externo Núcleo Digital y devuelve los datos oficiales proporcionados por el Gobierno.",
+    *     security={{"sanctum":{}}},
+    *
+    *     @OA\Response(
+    *         response=200,
+    *         description="Datos obtenidos correctamente",
+    *         @OA\JsonContent(
+    *             type="object",
+    *             example={
+    *                 "dependencias": {
+    *                     {"id": 1, "nombre": "Secretaría de Educación"},
+    *                     {"id": 2, "nombre": "Secretaría de Salud"}
+    *                 },
+    *                 "fecha_actualizacion": "2025-12-13T10:30:00Z"
+    *             }
+    *         )
+    *     ),
+    *
+    *     @OA\Response(
+    *         response=502,
+    *         description="Error al conectar con el Núcleo Digital",
+    *         @OA\JsonContent(
+    *             @OA\Property(
+    *                 property="message",
+    *                 type="string",
+    *                 example="No se pudo conectar con el Núcleo Digital."
+    *             )
+    *         )
+    *     )
+    * )
+    */
     public function index()
     {
         // 1. Llamar al servicio
