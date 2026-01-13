@@ -1,0 +1,1679 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "API PGE-QROO",
+        "description": "Documentación de la API para la Plataforma de Gestión Energética de Quintana Roo. Permite la gestión de dependencias, edificios, presupuestos y análisis de consumo.",
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/api/login": {
+            "post": {
+                "tags": [
+                    "Autenticación"
+                ],
+                "summary": "Iniciar sesión",
+                "description": "Obtiene un token de acceso para el sistema.",
+                "operationId": "222b2625838e3c57e017987f73598fda",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "contrasena"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "admin@pgeqroo.com"
+                                    },
+                                    "contrasena": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "password123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Login exitoso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "login exitoso"
+                                        },
+                                        "access_token": {
+                                            "type": "string",
+                                            "example": "1|AbCdEf123..."
+                                        },
+                                        "token_type": {
+                                            "type": "string",
+                                            "example": "Bearer"
+                                        },
+                                        "user": {
+                                            "$ref": "#/components/schemas/UserAuthResponse"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Credenciales incorrectas"
+                    },
+                    "422": {
+                        "description": "Datos inválidos"
+                    }
+                }
+            }
+        },
+        "/api/me": {
+            "get": {
+                "tags": [
+                    "Autenticación"
+                ],
+                "summary": "Obtener usuario autenticado",
+                "description": "Devuelve los datos del usuario logueado. Requiere Bearer Token.",
+                "operationId": "8367feff40ba10e43187792cad3132c1",
+                "responses": {
+                    "200": {
+                        "description": "Datos del usuario recuperados",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserFullResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/logout": {
+            "post": {
+                "tags": [
+                    "Autenticación"
+                ],
+                "summary": "Cerrar sesión",
+                "description": "Elimina el token de acceso actual del usuario. Requiere Bearer Token.",
+                "operationId": "ad65cbbd4e9f201619eae184a5961a98",
+                "responses": {
+                    "200": {
+                        "description": "Sesión cerrada correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Sesión cerrada correctamente"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/analisis/ranking-dependencias": {
+            "get": {
+                "tags": [
+                    "Análisis"
+                ],
+                "summary": "Ranking de consumo por dependencia",
+                "description": "Obtiene el ranking de consumo energético agrupado por dependencia. Útil para gráficas comparativas. Permite filtrar por año y mes.",
+                "operationId": "e739b97d6c5a410f5116249df058ee75",
+                "parameters": [
+                    {
+                        "name": "año",
+                        "in": "query",
+                        "description": "Año del consumo (por defecto el año actual)",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 2025
+                        }
+                    },
+                    {
+                        "name": "mes",
+                        "in": "query",
+                        "description": "Mes del consumo (1–12). Si no se envía, se consideran todos los meses",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 12,
+                            "minimum": 1,
+                            "example": 3
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ranking de consumo obtenido correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "periodo": {
+                                            "properties": {
+                                                "año": {
+                                                    "type": "integer",
+                                                    "example": 2025
+                                                },
+                                                "mes": {
+                                                    "type": "string",
+                                                    "example": "Todos"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "ranking": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/RankingConsumoDependencia"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/consumos/carga-masiva": {
+            "post": {
+                "tags": [
+                    "Consumos"
+                ],
+                "summary": "Carga masiva de consumos energéticos",
+                "description": "Permite importar consumos desde un archivo CSV, XLSX, XLS o TXT. Requiere permiso cargar-consumos.",
+                "operationId": "66884a3bcb042ab62e3d8abf2572750c",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "archivo"
+                                ],
+                                "properties": {
+                                    "archivo": {
+                                        "description": "Archivo de consumos (csv, xlsx, xls, txt)",
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Datos importados con éxito",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Datos importados con exito"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Errores de validación en el archivo",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "El archivo tiene errores de formato"
+                                        },
+                                        "details": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/ErrorCargaConsumo"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "No autorizado"
+                    },
+                    "500": {
+                        "description": "Error interno al procesar el archivo"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/dashboard": {
+            "get": {
+                "tags": [
+                    "Dashboard"
+                ],
+                "summary": "Datos principales del dashboard",
+                "description": "Obtiene KPIs, evolución de consumo y ranking de inmuebles. Puede filtrarse por dependencia.",
+                "operationId": "d5fcadff7c52501c317a59bc00886f22",
+                "parameters": [
+                    {
+                        "name": "id_dependencia",
+                        "in": "query",
+                        "description": "ID de la dependencia para filtrar los datos del dashboard",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 2
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Datos del dashboard obtenidos correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "periodo": {
+                                            "properties": {
+                                                "mes": {
+                                                    "type": "integer",
+                                                    "example": 6
+                                                },
+                                                "año": {
+                                                    "type": "integer",
+                                                    "example": 2025
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "kpis": {
+                                            "properties": {
+                                                "consumo_mes_kwh": {
+                                                    "type": "number",
+                                                    "format": "float",
+                                                    "example": 15432.75
+                                                },
+                                                "costo_mes": {
+                                                    "type": "number",
+                                                    "format": "float",
+                                                    "example": 32145.5
+                                                },
+                                                "presupuesto_trimestre": {
+                                                    "type": "number",
+                                                    "format": "float",
+                                                    "example": 500000
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "data_evolucion": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/EvolucionConsumo"
+                                            }
+                                        },
+                                        "data_inmuebles": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/InmuebleTopConsumo"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/dependencias": {
+            "get": {
+                "tags": [
+                    "Dependencias"
+                ],
+                "summary": "Listar dependencias",
+                "description": "Lista dependencias visibles para el usuario autenticado.",
+                "operationId": "5cd8607d5968dd4188851e4fa34ca8a5",
+                "responses": {
+                    "200": {
+                        "description": "Listado de dependencias",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "id_dependencia": {
+                                                "type": "integer",
+                                                "example": 1
+                                            },
+                                            "nombre_dependencia": {
+                                                "type": "string",
+                                                "example": "Secretaría de Educación"
+                                            },
+                                            "edificios_count": {
+                                                "type": "integer",
+                                                "example": 5
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Dependencias"
+                ],
+                "summary": "Crear dependencia",
+                "operationId": "114ccfc81af4bc0287008030487c9ea6",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "nombre_dependencia"
+                                ],
+                                "properties": {
+                                    "nombre_dependencia": {
+                                        "type": "string",
+                                        "example": "Nueva Secretaría"
+                                    },
+                                    "sector_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Dependencia creada"
+                    },
+                    "403": {
+                        "description": "No autorizado"
+                    },
+                    "422": {
+                        "description": "Datos inválidos"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/dependencias/{dependencia}": {
+            "get": {
+                "tags": [
+                    "Dependencias"
+                ],
+                "summary": "Obtener dependencia especifica",
+                "operationId": "a12a8811e351ba31964b4c06acace7ba",
+                "parameters": [
+                    {
+                        "name": "dependencia",
+                        "in": "path",
+                        "description": "ID de la dependencia",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detalle de la dependencia",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "id_dependencia": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "nombre_dependencia": {
+                                            "type": "string",
+                                            "example": "Secretaría de Educación"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "No autorizado"
+                    },
+                    "404": {
+                        "description": "No encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Dependencias"
+                ],
+                "summary": "Actualizar dependencia",
+                "operationId": "30198c74ec2f7563e5217eb84081bc13",
+                "parameters": [
+                    {
+                        "name": "dependencia",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "nombre_dependencia": {
+                                        "type": "string",
+                                        "example": "Dependencia Actualizada"
+                                    },
+                                    "sector_id": {
+                                        "type": "integer",
+                                        "example": 2
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Actualizada correctamente"
+                    },
+                    "403": {
+                        "description": "No autorizado"
+                    },
+                    "422": {
+                        "description": "Datos inválidos"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Dependencias"
+                ],
+                "summary": "Eliminar dependencia",
+                "operationId": "bc8c3d70b02beb31113a209e077cc565",
+                "parameters": [
+                    {
+                        "name": "dependencia",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Eliminada correctamente"
+                    },
+                    "403": {
+                        "description": "No autorizado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/dependencias/{dependencia}/edificios": {
+            "get": {
+                "tags": [
+                    "Edificios"
+                ],
+                "summary": "Listar edificios de una dependencia",
+                "description": "Devuelve todos los edificios asociados a una dependencia específica.",
+                "operationId": "23968fcfb0a02d21f0e8166a34064302",
+                "parameters": [
+                    {
+                        "name": "dependencia",
+                        "in": "path",
+                        "description": "ID de la dependencia",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de edificios",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "id_edificio": {
+                                                "type": "integer",
+                                                "example": 10
+                                            },
+                                            "nombre_edificio": {
+                                                "type": "string",
+                                                "example": "Edificio Central"
+                                            },
+                                            "direccion": {
+                                                "type": "string",
+                                                "example": "Av. Principal 123"
+                                            },
+                                            "latitud": {
+                                                "type": "number",
+                                                "format": "float",
+                                                "example": 18.5001
+                                            },
+                                            "longitud": {
+                                                "type": "number",
+                                                "format": "float",
+                                                "example": -88.3002
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "No autorizado"
+                    },
+                    "404": {
+                        "description": "Dependencia no encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Edificios"
+                ],
+                "summary": "Crear edificio",
+                "description": "Crea un nuevo edificio dentro de una dependencia.",
+                "operationId": "e38fd71e63c33d05e6f0bf01c0c5843e",
+                "parameters": [
+                    {
+                        "name": "dependencia",
+                        "in": "path",
+                        "description": "ID de la dependencia",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "nombre_edificio"
+                                ],
+                                "properties": {
+                                    "nombre_edificio": {
+                                        "type": "string",
+                                        "example": "Edificio Norte"
+                                    },
+                                    "direccion": {
+                                        "type": "string",
+                                        "example": "Calle 10 #45"
+                                    },
+                                    "latitud": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 19.4326
+                                    },
+                                    "longitud": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": -99.1332
+                                    },
+                                    "caracteristicas": {
+                                        "type": "string",
+                                        "example": "3 niveles, oficinas administrativas"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Edificio creado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "id_edificio": {
+                                            "type": "integer",
+                                            "example": 15
+                                        },
+                                        "nombre_edificio": {
+                                            "type": "string",
+                                            "example": "Edificio Norte"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "No autorizado"
+                    },
+                    "422": {
+                        "description": "Datos inválidos"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/edificios/{edificio}": {
+            "put": {
+                "tags": [
+                    "Edificios"
+                ],
+                "summary": "Actualizar edificio",
+                "description": "Actualiza los datos de un edificio existente.",
+                "operationId": "0196bb80a5992d9c504844fbdaf2c370",
+                "parameters": [
+                    {
+                        "name": "edificio",
+                        "in": "path",
+                        "description": "ID del edificio",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "nombre_edificio": {
+                                        "type": "string",
+                                        "example": "Edificio Renovado"
+                                    },
+                                    "direccion": {
+                                        "type": "string",
+                                        "example": "Av. Reforma 100"
+                                    },
+                                    "latitud": {
+                                        "type": "number",
+                                        "format": "float"
+                                    },
+                                    "longitud": {
+                                        "type": "number",
+                                        "format": "float"
+                                    },
+                                    "caracteristicas": {
+                                        "type": "string",
+                                        "example": "Paneles solares instalados"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Edificio actualizado"
+                    },
+                    "403": {
+                        "description": "No autorizado"
+                    },
+                    "404": {
+                        "description": "Edificio no encontrado"
+                    },
+                    "422": {
+                        "description": "Datos inválidos"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Edificios"
+                ],
+                "summary": "Eliminar edificio",
+                "description": "Elimina un edificio del sistema.",
+                "operationId": "eab50c6820f063eb9cd520f8cabadc8f",
+                "parameters": [
+                    {
+                        "name": "edificio",
+                        "in": "path",
+                        "description": "ID del edificio",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Edificio eliminado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Edificio eliminado"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "No autorizado"
+                    },
+                    "404": {
+                        "description": "Edificio no encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/dependencias/{dependencia}/presupuestos": {
+            "get": {
+                "tags": [
+                    "Presupuestos"
+                ],
+                "summary": "Listar presupuestos de una dependencia",
+                "operationId": "b5551760fec4615714e8a3685dd7d85b",
+                "parameters": [
+                    {
+                        "name": "dependencia",
+                        "in": "path",
+                        "description": "ID de la dependencia",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de presupuestos",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Presupuesto"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "No autorizado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Presupuestos"
+                ],
+                "summary": "Asignar presupuesto a una dependencia",
+                "operationId": "a1a2392eeb2a18dafd4ad2f2b528626c",
+                "parameters": [
+                    {
+                        "name": "dependencia",
+                        "in": "path",
+                        "description": "ID de la dependencia",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "año",
+                                    "trimestre",
+                                    "monto_asignado"
+                                ],
+                                "properties": {
+                                    "año": {
+                                        "type": "integer",
+                                        "example": 2025
+                                    },
+                                    "trimestre": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "monto_asignado": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 250000.75
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Presupuesto creado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Presupuesto"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Presupuesto duplicado"
+                    },
+                    "403": {
+                        "description": "No autorizado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/roles": {
+            "get": {
+                "tags": [
+                    "Roles"
+                ],
+                "summary": "Listar roles del sistema",
+                "description": "Devuelve el catálogo completo de roles disponibles en el sistema.",
+                "operationId": "5c93e433a52fc61578863a28b96cc3e2",
+                "responses": {
+                    "200": {
+                        "description": "Listado de roles",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "id_rol": {
+                                                "type": "integer",
+                                                "example": 1
+                                            },
+                                            "nombre": {
+                                                "type": "string",
+                                                "example": "Administrador"
+                                            },
+                                            "descripcion": {
+                                                "type": "string",
+                                                "example": "Acceso total al sistema"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/sectores": {
+            "get": {
+                "tags": [
+                    "Sectores"
+                ],
+                "summary": "Listar sectores",
+                "description": "Devuelve todos los sectores registrados junto con el número de dependencias asociadas.",
+                "operationId": "edb74486590a08d272e81c8299b3b969",
+                "responses": {
+                    "200": {
+                        "description": "Listado de sectores",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "id_sector": {
+                                                "type": "integer",
+                                                "example": 1
+                                            },
+                                            "nombre_sector": {
+                                                "type": "string",
+                                                "example": "Sector Educativo"
+                                            },
+                                            "dependencias_count": {
+                                                "type": "integer",
+                                                "example": 8
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/usuarios": {
+            "get": {
+                "tags": [
+                    "Usuarios"
+                ],
+                "summary": "Listar usuarios",
+                "description": "Devuelve todos los usuarios del sistema. Solo disponible para Super Admin.",
+                "operationId": "14ce5a8e120984e978f4d6d0f528d824",
+                "responses": {
+                    "200": {
+                        "description": "Listado de usuarios",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Usuario"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "No autorizado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Usuarios"
+                ],
+                "summary": "Crear usuario",
+                "operationId": "b1b07c0dbd35ed79e98cbadbf4ac4a0d",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "nombre_usuario",
+                                    "nombre",
+                                    "apellido",
+                                    "email",
+                                    "contrasena",
+                                    "asignaciones"
+                                ],
+                                "properties": {
+                                    "nombre_usuario": {
+                                        "type": "string",
+                                        "example": "jperez"
+                                    },
+                                    "nombre": {
+                                        "type": "string",
+                                        "example": "Juan"
+                                    },
+                                    "apellido": {
+                                        "type": "string",
+                                        "example": "Pérez"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                    },
+                                    "contrasena": {
+                                        "type": "string",
+                                        "format": "password"
+                                    },
+                                    "asignaciones": {
+                                        "type": "array",
+                                        "items": {
+                                            "$ref": "#/components/schemas/AsignacionRol"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Usuario creado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Usuario"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "No autorizado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/usuarios/{id}": {
+            "get": {
+                "tags": [
+                    "Usuarios"
+                ],
+                "summary": "Ver usuario",
+                "operationId": "177b75957dba46192af78d1ad338ab76",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Usuario encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Usuario"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Usuario no encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Usuarios"
+                ],
+                "summary": "Actualizar usuario",
+                "operationId": "7cd5dc3011a90c5aa5f94d6a387257e7",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "nombre": {
+                                        "type": "string"
+                                    },
+                                    "apellido": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                    },
+                                    "contrasena": {
+                                        "type": "string"
+                                    },
+                                    "asignaciones": {
+                                        "type": "array",
+                                        "items": {
+                                            "$ref": "#/components/schemas/AsignacionRol"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Usuario actualizado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Usuario"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Usuarios"
+                ],
+                "summary": "Desactivar usuario",
+                "operationId": "d0e6b89442ffaa6fbfdd18bc6838a6d2",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Usuario desactivado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/integracion/gobierno": {
+            "get": {
+                "tags": [
+                    "Integración"
+                ],
+                "summary": "Obtener datos oficiales del Gobierno",
+                "description": "Consulta el servicio externo Núcleo Digital.",
+                "operationId": "e9a3a3b22322f3491c09a784f031f926",
+                "responses": {
+                    "200": {
+                        "description": "Datos obtenidos correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "502": {
+                        "description": "Error al conectar con el Núcleo Digital"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "UserAuthResponse": {
+                "title": "Usuario Autenticado (Respuesta Login)",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 5
+                    },
+                    "nombre": {
+                        "type": "string",
+                        "example": "Juan Pérez"
+                    },
+                    "nombre_usuario": {
+                        "type": "string",
+                        "example": "jperez"
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "juan.perez@ejemplo.com"
+                    }
+                },
+                "type": "object"
+            },
+            "RankingConsumoDependencia": {
+                "title": "Ranking de Consumo por Dependencia",
+                "description": "Datos agregados de consumo energético por dependencia",
+                "properties": {
+                    "id_dependencia": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "nombre_dependencia": {
+                        "type": "string",
+                        "example": "Secretaría de Educación"
+                    },
+                    "total_consumo": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 15432.75
+                    },
+                    "total_costo": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 32145.5
+                    }
+                },
+                "type": "object"
+            },
+            "ErrorCargaConsumo": {
+                "title": "Error en Carga Masiva de Consumos",
+                "description": "Detalle de error detectado en una fila del archivo importado",
+                "properties": {
+                    "fila": {
+                        "type": "integer",
+                        "example": 12
+                    },
+                    "columna": {
+                        "type": "string",
+                        "example": "consumo_kwh"
+                    },
+                    "error": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "example": "El consumo debe ser numérico"
+                        }
+                    },
+                    "valor_erroneo": {
+                        "type": "string",
+                        "example": "ABC123"
+                    }
+                },
+                "type": "object"
+            },
+            "UserFullResponse": {
+                "title": "Usuario Completo (Endpoint /me)",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/UserAuthResponse"
+                    },
+                    {
+                        "properties": {
+                            "activo": {
+                                "type": "boolean",
+                                "example": true
+                            },
+                            "ultimo_login": {
+                                "type": "string",
+                                "format": "date-time",
+                                "example": "2025-12-13T05:00:00.000000Z"
+                            },
+                            "roles": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "example": {
+                                        "id": 1,
+                                        "name": "Administrador"
+                                    }
+                                }
+                            },
+                            "dependencias": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "example": {
+                                        "id": 1,
+                                        "name": "Secretaría A"
+                                    }
+                                }
+                            }
+                        },
+                        "type": "object"
+                    }
+                ]
+            },
+            "EvolucionConsumo": {
+                "title": "Evolución de Consumo Energético",
+                "description": "Consumo y costo energético por mes",
+                "properties": {
+                    "año": {
+                        "type": "integer",
+                        "example": 2025
+                    },
+                    "mes": {
+                        "type": "integer",
+                        "example": 6
+                    },
+                    "total_consumo": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 13250.75
+                    },
+                    "total_costo": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 28900.4
+                    }
+                },
+                "type": "object"
+            },
+            "InmuebleTopConsumo": {
+                "title": "Inmueble con Mayor Consumo",
+                "description": "Inmueble con mayor consumo energético en el periodo",
+                "properties": {
+                    "nombre_edificio": {
+                        "type": "string",
+                        "example": "Edificio Central"
+                    },
+                    "consumo": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 5420.8
+                    }
+                },
+                "type": "object"
+            },
+            "Presupuesto": {
+                "required": [
+                    "año",
+                    "trimestre",
+                    "monto_asignado",
+                    "dependencia_id"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "año": {
+                        "type": "integer",
+                        "example": 2024
+                    },
+                    "trimestre": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "monto_asignado": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 150000.5
+                    },
+                    "dependencia_id": {
+                        "type": "integer",
+                        "example": 3
+                    }
+                },
+                "type": "object"
+            },
+            "Usuario": {
+                "properties": {
+                    "id_usuario": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "nombre_usuario": {
+                        "type": "string",
+                        "example": "admin"
+                    },
+                    "nombre": {
+                        "type": "string",
+                        "example": "Juan"
+                    },
+                    "apellido": {
+                        "type": "string",
+                        "example": "Pérez"
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "admin@pgeqroo.com"
+                    },
+                    "activo": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "roles": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "example": {
+                                "id": 1,
+                                "nombre": "Administrador"
+                            }
+                        }
+                    },
+                    "dependencias": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "example": {
+                                "id": 2,
+                                "nombre": "Secretaría A"
+                            }
+                        }
+                    }
+                },
+                "type": "object"
+            },
+            "AsignacionRol": {
+                "required": [
+                    "rol_id",
+                    "dependencia_id"
+                ],
+                "properties": {
+                    "rol_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "dependencia_id": {
+                        "type": "integer",
+                        "example": 2
+                    }
+                },
+                "type": "object"
+            }
+        },
+        "securitySchemes": {
+            "sanctum": {
+                "type": "http",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Autenticación",
+            "description": "Autenticación"
+        },
+        {
+            "name": "Análisis",
+            "description": "Análisis"
+        },
+        {
+            "name": "Consumos",
+            "description": "Consumos"
+        },
+        {
+            "name": "Dashboard",
+            "description": "Dashboard"
+        },
+        {
+            "name": "Dependencias",
+            "description": "Dependencias"
+        },
+        {
+            "name": "Edificios",
+            "description": "Edificios"
+        },
+        {
+            "name": "Presupuestos",
+            "description": "Presupuestos"
+        },
+        {
+            "name": "Roles",
+            "description": "Roles"
+        },
+        {
+            "name": "Sectores",
+            "description": "Sectores"
+        },
+        {
+            "name": "Usuarios",
+            "description": "Usuarios"
+        },
+        {
+            "name": "Integración",
+            "description": "Integración"
+        }
+    ]
+}
